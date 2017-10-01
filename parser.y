@@ -24,7 +24,8 @@
 #define YYERROR_VERBOSE
 #define yTRACE(x)    { if (traceParser) fprintf(traceFile, "%s\n", x); }
 
-void yyerror(char* s);    /* what to do in case of error            */
+/* lab1 add const here */
+void yyerror(const char* s);    /* what to do in case of error            */
 int yylex();              /* procedure for calling lexical analyzer */
 extern int yyline;        /* variable holding current line number   */
 
@@ -96,7 +97,7 @@ token
  * The given yyerror function should not be touched. You may add helper
  * functions as necessary in subsequent phases.
  ***********************************************************************/
-void yyerror(char* s) {
+void yyerror(const char* s) {
   if (errorOccurred)
     return;    /* Error has already been reported by scanner */
   else

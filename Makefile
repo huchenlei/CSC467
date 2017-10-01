@@ -62,6 +62,5 @@ ${OBJs}:     common.h
 lex.yy.c:    scanner.l
 	$(LEX) $(LEXFLAGS) $<
 $(LEXER_OBJ): parser.tab.h
-# this line causes problem for lab1
-# parser.tab.h: parser.c
-# 	mv y.tab.h parser.tab.h
+parser.tab.h: parser.c
+	mv y.tab.h parser.tab.h
