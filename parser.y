@@ -56,11 +56,81 @@ extern int yyline;        /* variable holding current line number   */
 // Can access me from flex useing yyval
 
 %union {
-  int num;
+  int intVal;
+  float floatVal;
+  bool boolVal;
+  char *id;
 }
-// TODO:Replace myToken with your tokens, you can use these tokens in flex
-%token           myToken1 myToken2  
 
+// TODO:Replace myToken with your tokens, you can use these tokens in flex
+%token
+myToken1
+myToken2
+
+IDENTIFIER
+
+/* Separators */
+/* , */
+COMMA
+/* ; */
+SEMICOLON
+/* () */
+LBRAC                           /* Left bracket */
+RBRAC
+/* [] */
+LSBRAC                          /* Left small bracket */
+RSBRAC
+/* {} */
+LSCOPE
+RSCOPE
+
+/* Math Operators */
+ADD
+SUB
+MUL
+DIV
+POW
+
+ASSIGN
+
+/* Boolean Operators */
+AND
+OR
+NOT
+EQ
+NEQ
+GT                              /* Greater than */
+LT                              /* Less than */
+GE                              /* Greater equal */
+LE                              /* Less equal */
+
+/* Data types */
+T_VOID
+T_INT
+T_BOOL
+T_FLOAT
+T_VEC2
+T_VEC3
+T_VEC4
+T_BVEC2
+T_BVEC3
+T_BVEC4
+T_IVEC2
+T_IVEC3
+T_IVEC4
+
+/* Data values */
+V_INT
+V_FLOAT
+V_BOOL
+
+/* Flow control */
+IF
+ELSE
+WHILE
+
+/* Other keywords */
+CONST
 
 %start    program
 
@@ -84,8 +154,14 @@ tokens
   ;
 // TODO: replace myToken with the token the you defined.
 token
-  :     myToken1 
-  |     myToken2                     
+  :     T_INT
+  |     T_FLOAT
+  |     T_BOOL
+  |     IDENTIFIER
+  |     V_INT
+  |     V_FLOAT
+  |     V_BOOL
+  |     ASSIGN
   ;
 
 
