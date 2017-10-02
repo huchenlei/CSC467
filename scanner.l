@@ -26,7 +26,7 @@
 %}
 %option noyywrap
 /* Defines macros */
-WS          [ \t\n]
+WS          [ \t]
 DELIM       [ \t\n\(\)\[\]\{\},\;\+\-\*\/\^\=\!\<\>]|&&|"||"|==|!=|"<"=|">"=
 
 %%
@@ -133,6 +133,8 @@ ivec4/{DELIM} {yTRACE(T_IVEC4); return T_IVEC4;}
        yyline++;
    }
  }
+
+"\n"         {yyline++;}
 
 {WS}+        {/*do nothing*/}
 

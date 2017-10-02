@@ -2,14 +2,15 @@
 /* The following should be accepted */
 {
   int i = 1;
-  float f = 1.0;
+  float f = 0.1;
   bool b = false;
   ivec2 v = {1, 2};
+  v[1] = 0;
 }
 
 
 /* The following should not be accepted */
-/* int 123int; */
+int 123int;
 /* int i = 1000000000000000; */
 /* float f = 340000000000000000000000000000000000000000.0; */
 /* bool toolooooooooooooooooooooooooooooogidentifier; */
