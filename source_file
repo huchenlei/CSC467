@@ -1,12 +1,15 @@
 /* This is a sample source file */
 /* The following should be accepted */
-int i=1;
-float f=1.0;
-bool b = false;
+{
+  int i = 1;
+  float f = 1.0;
+  bool b = false;
+  ivec2 v = {1, 2};
+}
 
 
 /* The following should not be accepted */
-int 123int;
-int i = 1000000000000000;
-float f = 340000000000000000000000000000000000000000;
-bool toolooooooooooooooooooooooooooooogidentifier;
+/* int 123int; */
+/* int i = 1000000000000000; */
+/* float f = 340000000000000000000000000000000000000000.0; */
+/* bool toolooooooooooooooooooooooooooooogidentifier; */

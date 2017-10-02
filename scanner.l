@@ -26,8 +26,8 @@
 %}
 %option noyywrap
 /* Defines macros */
-WS          [\t\n]
-DELIM       [\t\n\(\)\[\]\{\},\;\+\-\*\/\^\=\!\<\>]|&&|"||"|==|!=|"<"=|">"=
+WS          [ \t\n]
+DELIM       [ \t\n\(\)\[\]\{\},\;\+\-\*\/\^\=\!\<\>]|&&|"||"|==|!=|"<"=|">"=
 
 %%
 void/{DELIM} {yTRACE(T_VOID); return T_VOID;}

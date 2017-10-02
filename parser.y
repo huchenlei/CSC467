@@ -154,14 +154,50 @@ tokens
   ;
 // TODO: replace myToken with the token the you defined.
 token
-  :     T_INT
-  |     T_FLOAT
+  :     IDENTIFIER
+  |     COMMA
+  |     SEMICOLON
+  |     LBRAC
+  |     RBRAC
+  |     LSBRAC
+  |     RSBRAC
+  |     LSCOPE
+  |     RSCOPE
+  |     ADD
+  |     SUB
+  |     MUL
+  |     DIV
+  |     POW
+  |     ASSIGN
+  |     AND
+  |     OR
+  |     NOT
+  |     EQ
+  |     NEQ
+  |     GT
+  |     LT
+  |     GE
+  |     LE
+  |     T_VOID
+  |     T_INT
   |     T_BOOL
-  |     IDENTIFIER
+  |     T_FLOAT
+  |     T_VEC2
+  |     T_VEC3
+  |     T_VEC4
+  |     T_BVEC2
+  |     T_BVEC3
+  |     T_BVEC4
+  |     T_IVEC2
+  |     T_IVEC3
+  |     T_IVEC4
   |     V_INT
   |     V_FLOAT
   |     V_BOOL
-  |     ASSIGN
+  |     IF
+  |     ELSE
+  |     WHILE
+  |     CONST
   ;
 
 
