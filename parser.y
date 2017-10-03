@@ -64,9 +64,6 @@ extern int yyline;        /* variable holding current line number   */
 
 // TODO:Replace myToken with your tokens, you can use these tokens in flex
 %token
-myToken1
-myToken2
-
 IDENTIFIER
 
 /* Separators */

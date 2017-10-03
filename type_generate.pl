@@ -15,6 +15,10 @@ T_BVEC4
 T_IVEC2
 T_IVEC3
 T_IVEC4
+
+IF
+ELSE
+WHILE
 ];
 
 foreach my $type (@types) {
@@ -74,4 +78,20 @@ foreach my $token (@tokens) {
     if (not $token =~ /^\/\*.+?/) {
         print "  |     $token\n";
     }
+}
+
+my @bool_operators = qw [
+AND
+OR
+NOT
+EQ
+NEQ
+GT
+LT
+GE
+LE
+];
+
+foreach my $bool_operator(@bool_operators) {
+    print "\"\" {yTRACE($bool_operator);return $bool_operator;}\n";
 }

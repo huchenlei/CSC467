@@ -44,6 +44,12 @@ ivec2/{DELIM} {yTRACE(T_IVEC2); return T_IVEC2;}
 ivec3/{DELIM} {yTRACE(T_IVEC3); return T_IVEC3;}
 ivec4/{DELIM} {yTRACE(T_IVEC4); return T_IVEC4;}
 
+if/{DELIM} {yTRACE(IF); return IF;}
+else/{DELIM} {yTRACE(ELSE); return ELSE;}
+while/{DELIM} {yTRACE(WHILE); return WHILE;}
+
+const/{DELIM} {yTRACE(CONST); return CONST;}
+
 "(" {yTRACE(LBRAC); return LBRAC;}
 ")" {yTRACE(RBRAC); return RBRAC;}
 "[" {yTRACE(LSBRAC); return LSBRAC;}
@@ -61,6 +67,16 @@ ivec4/{DELIM} {yTRACE(T_IVEC4); return T_IVEC4;}
 "^" {yTRACE(POW); return POW;}
 
 "=" {yTRACE(ASSIGN); return ASSIGN;}
+
+"&&" {yTRACE(AND);return AND;}
+"||" {yTRACE(OR);return OR;}
+"!" {yTRACE(NOT);return NOT;}
+"==" {yTRACE(EQ);return EQ;}
+"!=" {yTRACE(NEQ);return NEQ;}
+">" {yTRACE(GT);return GT;}
+"<" {yTRACE(LT);return LT;}
+">=" {yTRACE(GE);return GE;}
+"<=" {yTRACE(LE);return LE;}
 
 (([1-9][0-9]*)|0)/{DELIM} {
   /* INT */
