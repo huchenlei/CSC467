@@ -1,12 +1,5 @@
 /* This is a sample source file */
 /* The following should be accepted */
-/* { */
-/*   int i = 1; */
-/*   while float f = 0.1; */
-/*   bool b = false; */
-/*   if ivec2 v = {1, 2}; */
-/*   else const v[1] = 0 || && + - / * ^ > < >= <= == != !; */
-/* } */
 
 {
   vec4 fCol = gl_color;
@@ -29,7 +22,6 @@
   shade = shade + coeff[1] * fCol;
   shade = shade + coeff[2] * fCol;
   gl_FragColor = shade;
-
 }
 
 /* The following should not be accepted */

@@ -115,27 +115,27 @@ declarations
 |   /* epsilon */               { yTRACE("declarations -> epsilon"); }
 ;
 declaration
-:   type ID ';'                       { yTRACE("declaration -> type ID ;"); }
-|   type ID '=' expression ';'    { yTRACE("declaration -> type ID = expression ;"); }
+:   type ID ';'                         { yTRACE("declaration -> type ID ;"); }
+|   type ID '=' expression ';'          { yTRACE("declaration -> type ID = expression ;"); }
 |   CONST type ID '=' expression ';'    { yTRACE("declaration -> CONST type ID '=' expression ;"); }
 ;
 statements
 :   statements statement    { yTRACE("statements -> statements statement"); }
-|   /* epsilon */               { yTRACE("statements -> epsilon"); }
+|   /* epsilon */           { yTRACE("statements -> epsilon"); }
 ;
 statement
-:   variable '=' expression ';'            { yTRACE("statement -> variable = expression ;"); }
+:   variable '=' expression ';'                       { yTRACE("statement -> variable = expression ;"); }
 |   IF '(' expression ')' statement else_statement    { yTRACE("statement -> IF ( expression ) statement else_statement"); }
-|   WHILE '(' expression ')' statement        { yTRACE("statement -> WHILE ( expression ) statement"); }
+|   WHILE '(' expression ')' statement                { yTRACE("statement -> WHILE ( expression ) statement"); }
 |   scope                            { yTRACE("statement -> scope"); }
-|   ';'                                         { yTRACE("statement -> ;"); }
+|   ';'                              { yTRACE("statement -> ;"); }
 ;
 else_statement
-:   ELSE statement    { yTRACE("else_statement -> ELSE statement"); }
+:   ELSE statement      { yTRACE("else_statement -> ELSE statement"); }
 |   /* epsilon */       { yTRACE("else_statement -> epsilon"); }
 ;
 arguments_opt
-:   arguments        { yTRACE("arguments_opt -> arguments"); }
+:   arguments           { yTRACE("arguments_opt -> arguments"); }
 |   /* epsilon */       { yTRACE("arguments_opt -> epsilon"); }
 ;
 arguments
@@ -148,14 +148,14 @@ expression
 |   '!' expression            { yTRACE("expression -> ! expression");}
 |   '-' expression %prec UMINUS    { /*prec means use different precedence rule as in minus*/ yTRACE("expression -> - expression");}
 |   expression AND expression           { yTRACE("expression -> expression AND expression");}
-|   expression OR expression           { yTRACE("expression -> expression OR expression");}
-|   expression EQ expression           { yTRACE("expression -> expression EQ expression");}
+|   expression OR expression            { yTRACE("expression -> expression OR expression");}
+|   expression EQ expression            { yTRACE("expression -> expression EQ expression");}
 |   expression NEQ expression           { yTRACE("expression -> expression NEQ expression");}
 |   expression '<' expression           { yTRACE("expression -> expression < expression");}
-|   expression LEQ expression        { yTRACE("expression -> expression <= expression");}
+|   expression LEQ expression           { yTRACE("expression -> expression <= expression");}
 |   expression '>' expression           { yTRACE("expression -> expression > expression");}
-|   expression GEQ expression     { yTRACE("expression -> expression >= expression");}
-|   expression '+' expression         { yTRACE("expression -> expression + expression");}
+|   expression GEQ expression           { yTRACE("expression -> expression >= expression");}
+|   expression '+' expression           { yTRACE("expression -> expression + expression");}
 |   expression '-' expression           { yTRACE("expression -> expression - expression");}
 |   expression '*' expression           { yTRACE("expression -> expression * expression");}
 |   expression '/' expression           { yTRACE("expression -> expression / expression");}
@@ -168,7 +168,7 @@ expression
 |   function                          { yTRACE("expression -> function");}
 ;
 variable
-:   ID                { yTRACE("variable -> ID");}
+:   ID                  { yTRACE("variable -> ID");}
 |   ID '[' INT_C ']'    { yTRACE("variable -> ID [ INT_C ]");}
 ;
 constructor
@@ -180,13 +180,13 @@ function
   // Display the function type in the trace.
   switch ($1)
     {
-    case 0:
+    case DP3:
       yTRACE("function -> dp3 ( arguments_opt )");
       break;
-    case 1:
+    case LIT:
       yTRACE("function -> lit ( arguments_opt )");
       break;
-    case 2:
+    case RSQ:
       yTRACE("function -> rsq ( arguments_opt )");
       break;
     }
@@ -195,7 +195,7 @@ function
 type
 :   INT_T     { yTRACE("type -> INT_T"); }
 |   BOOL_T    { yTRACE("type -> BOOL_T"); }
-|   FLOAT_T    { yTRACE("type -> FLOAT_T"); }
+|   FLOAT_T   { yTRACE("type -> FLOAT_T"); }
 |   VEC_T     { /*Display vector length in trace*/ char str[20]; snprintf(str, 20, "type -> VEC%d_T", $1+1); yTRACE(str); }
 |   IVEC_T    { char str[20]; snprintf(str, 20, "type -> IVEC%d_T", $1+1); yTRACE(str); }
 |   BVEC_T    { char str[20]; snprintf(str, 20, "type -> BVEC%d_T", $1+1); yTRACE(str); }
@@ -218,7 +218,7 @@ void yyerror(const char* s) {
   }
 
   fprintf(errorFile, "\nPARSER ERROR, LINE %d", yyline);
-  
+
   if(strcmp(s, "parse error")) {
     if(strncmp(s, "parse error, ", 13)) {
       fprintf(errorFile, ": %s\n", s);
