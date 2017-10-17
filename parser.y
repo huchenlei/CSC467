@@ -1,6 +1,7 @@
 %{
 /***********************************************************************
  * --YOUR GROUP INFO SHOULD GO HERE--
+ *  huchenle 1002030651
  * 
  *   Interface to the parser module for CSC467 course project.
  * 
@@ -81,6 +82,7 @@ enum {
 %token <as_float> FLOAT_C
 %token <as_int>   INT_C
 %token <as_str>   ID
+%token <as_func>  FUNC
 
 %left     '|'
 %left     '&'
@@ -101,54 +103,103 @@ enum {
  *       language grammar
  *    2. Implement the trace parser option of the compiler
  ***********************************************************************/
+
 program
-  :   tokens       
-  ;
-tokens
-  :  tokens token  
-  |
-  ;
-token
-  : ID 
-  | AND
-  | OR
-  | NEQ
-  | LEQ
-  | GEQ
-  | EQ
-  | TRUE_C
-  | FALSE_C
-  | INT_C
-  | FLOAT_C
-  | CONST
-  | ELSE
-  | IF
-  | WHILE
-  | FLOAT_T
-  | INT_T
-  | BOOL_T
-  | VEC_T
-  | IVEC_T
-  | BVEC_T
-  | FUNC               
-  | '+'
-  | '-'
-  | '*'
-  | '/'
-  | '^'  
-  | '!'
-  | '='
-  | '<'
-  | '>'   
-  | ','
-  | ';'
-  | '('
-  | ')'
-  | '['
-  | ']'
-  | '{'
-  | '}'                                    
-  ;
+:   scope    { yTRACE("program -> scope"); }
+;
+scope
+:   '{' declarations statements '}'    { yTRACE("scope -> { declarations statements }"); }
+;
+declarations
+:   declarations declaration    { yTRACE("declarations -> declarations declaration"); }
+|   /* epsilon */               { yTRACE("declarations -> epsilon"); }
+;
+declaration
+:   type ID ';'                       { yTRACE("declaration -> type ID ;"); }
+|   type ID '=' expression ';'    { yTRACE("declaration -> type ID = expression ;"); }
+|   CONST type ID '=' expression ';'    { yTRACE("declaration -> CONST type ID '=' expression ;"); }
+;
+statements
+:   statements statement    { yTRACE("statements -> statements statement"); }
+|   /* epsilon */               { yTRACE("statements -> epsilon"); }
+;
+statement
+:   variable '=' expression ';'            { yTRACE("statement -> variable = expression ;"); }
+|   IF '(' expression ')' statement else_statement    { yTRACE("statement -> IF ( expression ) statement else_statement"); }
+|   WHILE '(' expression ')' statement        { yTRACE("statement -> WHILE ( expression ) statement"); }
+|   scope                            { yTRACE("statement -> scope"); }
+|   ';'                                         { yTRACE("statement -> ;"); }
+;
+else_statement
+:   ELSE statement    { yTRACE("else_statement -> ELSE statement"); }
+|   /* epsilon */       { yTRACE("else_statement -> epsilon"); }
+;
+arguments_opt
+:   arguments        { yTRACE("arguments_opt -> arguments"); }
+|   /* epsilon */       { yTRACE("arguments_opt -> epsilon"); }
+;
+arguments
+: arguments ',' expression    { yTRACE("arguments -> arguments , expression");}
+| expression                  { yTRACE("arguments -> expression");}
+;
+expression
+:   INT_C                             { yTRACE("expression -> INT_C");}
+|   FLOAT_C                           { yTRACE("expression -> FLOAT_C");}
+|   '!' expression            { yTRACE("expression -> ! expression");}
+|   '-' expression %prec UMINUS    { /*prec means use different precedence rule as in minus*/ yTRACE("expression -> - expression");}
+|   expression AND expression           { yTRACE("expression -> expression AND expression");}
+|   expression OR expression           { yTRACE("expression -> expression OR expression");}
+|   expression EQ expression           { yTRACE("expression -> expression EQ expression");}
+|   expression NEQ expression           { yTRACE("expression -> expression NEQ expression");}
+|   expression '<' expression           { yTRACE("expression -> expression < expression");}
+|   expression LEQ expression        { yTRACE("expression -> expression <= expression");}
+|   expression '>' expression           { yTRACE("expression -> expression > expression");}
+|   expression GEQ expression     { yTRACE("expression -> expression >= expression");}
+|   expression '+' expression         { yTRACE("expression -> expression + expression");}
+|   expression '-' expression           { yTRACE("expression -> expression - expression");}
+|   expression '*' expression           { yTRACE("expression -> expression * expression");}
+|   expression '/' expression           { yTRACE("expression -> expression / expression");}
+|   expression '^' expression           { yTRACE("expression -> expression ^ expression");}
+|   TRUE_C                            { yTRACE("expression -> TRUE_C");}
+|   FALSE_C                           { yTRACE("expression -> FALSE_C");}
+|   '(' expression ')'                { yTRACE("expression -> ( expression )");}
+|   variable                          { yTRACE("expression -> variable");}
+|   constructor                       { yTRACE("expression -> constructor");}
+|   function                          { yTRACE("expression -> function");}
+;
+variable
+:   ID                { yTRACE("variable -> ID");}
+|   ID '[' INT_C ']'    { yTRACE("variable -> ID [ INT_C ]");}
+;
+constructor
+:   type '(' arguments_opt ')'    { yTRACE("constructor -> type ( arguments_opt )");}
+;
+function
+:   FUNC '(' arguments_opt ')'
+{
+  // Display the function type in the trace.
+  switch ($1)
+    {
+    case 0:
+      yTRACE("function -> dp3 ( arguments_opt )");
+      break;
+    case 1:
+      yTRACE("function -> lit ( arguments_opt )");
+      break;
+    case 2:
+      yTRACE("function -> rsq ( arguments_opt )");
+      break;
+    }
+}
+;
+type
+:   INT_T     { yTRACE("type -> INT_T"); }
+|   BOOL_T    { yTRACE("type -> BOOL_T"); }
+|   FLOAT_T    { yTRACE("type -> FLOAT_T"); }
+|   VEC_T     { /*Display vector length in trace*/ char str[20]; snprintf(str, 20, "type -> VEC%d_T", $1+1); yTRACE(str); }
+|   IVEC_T    { char str[20]; snprintf(str, 20, "type -> IVEC%d_T", $1+1); yTRACE(str); }
+|   BVEC_T    { char str[20]; snprintf(str, 20, "type -> BVEC%d_T", $1+1); yTRACE(str); }
+;
 
 
 %%

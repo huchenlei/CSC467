@@ -1,1 +1,9 @@
-\#y.output\#
+# generated object file
+*.o
+
+# other generated files
+lex.yy.c
+parser.tab.h
+parser.c
+y.output
+compiler467

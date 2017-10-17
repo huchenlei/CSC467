@@ -43,6 +43,7 @@ int yyline = 1;
 [()[\]{}]                     { yOUT(yytext[0]); }
 [<>=!]                        { yOUT(yytext[0]); }
 ";"                           { yOUT(yytext[0]); }
+","                           { yOUT(yytext[0]); }
 "&&"                          { yOUT(AND); }
 "||"                          { yOUT(OR); }
 "!="                          { yOUT(NEQ); }
