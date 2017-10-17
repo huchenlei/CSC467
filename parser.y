@@ -24,10 +24,15 @@
 #define YYERROR_VERBOSE
 #define yTRACE(x)    { if (traceParser) fprintf(traceFile, "%s\n", x); }
 
-/* lab1 add const here */
 void yyerror(const char* s);    /* what to do in case of error            */
 int yylex();              /* procedure for calling lexical analyzer */
 extern int yyline;        /* variable holding current line number   */
+
+enum {
+  DP3 = 0, 
+  LIT = 1, 
+  RSQ = 2
+};
 
 %}
 
@@ -51,83 +56,39 @@ extern int yyline;        /* variable holding current line number   */
 #define YYDEBUG 1
 %}
 
-
-// TODO:Modify me to add more data types
-// Can access me from flex useing yyval
-
+// defines the yyval union
 %union {
-  int intVal;
-  float floatVal;
-  bool boolVal;
-  char *id;
+  int as_int;
+  int as_vec;
+  float as_float;
+  char *as_str;
+  int as_func;
 }
 
-// TODO:Replace myToken with your tokens, you can use these tokens in flex
-%token
-IDENTIFIER
+%token          FLOAT_T
+%token          INT_T
+%token          BOOL_T
+%token          CONST
+%token          FALSE_C TRUE_C
+%token          FUNC
+%token          IF WHILE ELSE
+%token          AND OR NEQ EQ LEQ GEQ
 
-/* Separators */
-/* , */
-COMMA
-/* ; */
-SEMICOLON
-/* () */
-LBRAC                           /* Left bracket */
-RBRAC
-/* [] */
-LSBRAC                          /* Left small bracket */
-RSBRAC
-/* {} */
-LSCOPE
-RSCOPE
+// links specific values of tokens to yyval
+%token <as_vec>   VEC_T
+%token <as_vec>   BVEC_T
+%token <as_vec>   IVEC_T
+%token <as_float> FLOAT_C
+%token <as_int>   INT_C
+%token <as_str>   ID
 
-/* Math Operators */
-ADD
-SUB
-MUL
-DIV
-POW
-
-ASSIGN
-
-/* Boolean Operators */
-AND
-OR
-NOT
-EQ
-NEQ
-GT                              /* Greater than */
-LT                              /* Less than */
-GE                              /* Greater equal */
-LE                              /* Less equal */
-
-/* Data types */
-T_VOID
-T_INT
-T_BOOL
-T_FLOAT
-T_VEC2
-T_VEC3
-T_VEC4
-T_BVEC2
-T_BVEC3
-T_BVEC4
-T_IVEC2
-T_IVEC3
-T_IVEC4
-
-/* Data values */
-V_INT
-V_FLOAT
-V_BOOL
-
-/* Flow control */
-IF
-ELSE
-WHILE
-
-/* Other keywords */
-CONST
+%left     '|'
+%left     '&'
+%nonassoc '=' NEQ '<' LEQ '>' GEQ
+%left     '+' '-'
+%left     '*' '/'
+%right    '^'
+%nonassoc '!' UMINUS
 
 %start    program
 
@@ -139,62 +100,54 @@ CONST
  *    1. Replace grammar found here with something reflecting the source
  *       language grammar
  *    2. Implement the trace parser option of the compiler
- *  Phase 3:
- *    1. Add code to rules for construction of AST.
  ***********************************************************************/
 program
   :   tokens       
   ;
 tokens
   :  tokens token  
-  |      
+  |
   ;
-// TODO: replace myToken with the token the you defined.
 token
-  :     IDENTIFIER
-  |     COMMA
-  |     SEMICOLON
-  |     LBRAC
-  |     RBRAC
-  |     LSBRAC
-  |     RSBRAC
-  |     LSCOPE
-  |     RSCOPE
-  |     ADD
-  |     SUB
-  |     MUL
-  |     DIV
-  |     POW
-  |     ASSIGN
-  |     AND
-  |     OR
-  |     NOT
-  |     EQ
-  |     NEQ
-  |     GT
-  |     LT
-  |     GE
-  |     LE
-  |     T_VOID
-  |     T_INT
-  |     T_BOOL
-  |     T_FLOAT
-  |     T_VEC2
-  |     T_VEC3
-  |     T_VEC4
-  |     T_BVEC2
-  |     T_BVEC3
-  |     T_BVEC4
-  |     T_IVEC2
-  |     T_IVEC3
-  |     T_IVEC4
-  |     V_INT
-  |     V_FLOAT
-  |     V_BOOL
-  |     IF
-  |     ELSE
-  |     WHILE
-  |     CONST
+  : ID 
+  | AND
+  | OR
+  | NEQ
+  | LEQ
+  | GEQ
+  | EQ
+  | TRUE_C
+  | FALSE_C
+  | INT_C
+  | FLOAT_C
+  | CONST
+  | ELSE
+  | IF
+  | WHILE
+  | FLOAT_T
+  | INT_T
+  | BOOL_T
+  | VEC_T
+  | IVEC_T
+  | BVEC_T
+  | FUNC               
+  | '+'
+  | '-'
+  | '*'
+  | '/'
+  | '^'  
+  | '!'
+  | '='
+  | '<'
+  | '>'   
+  | ','
+  | ';'
+  | '('
+  | ')'
+  | '['
+  | ']'
+  | '{'
+  | '}'                                    
   ;
 
 
@@ -207,18 +160,22 @@ token
  * functions as necessary in subsequent phases.
  ***********************************************************************/
 void yyerror(const char* s) {
-  if (errorOccurred)
+  if(errorOccurred) {
     return;    /* Error has already been reported by scanner */
-  else
+  } else {
     errorOccurred = 1;
-        
-  fprintf(errorFile, "\nPARSER ERROR, LINE %d",yyline);
-  if (strcmp(s, "parse error")) {
-    if (strncmp(s, "parse error, ", 13))
+  }
+
+  fprintf(errorFile, "\nPARSER ERROR, LINE %d", yyline);
+  
+  if(strcmp(s, "parse error")) {
+    if(strncmp(s, "parse error, ", 13)) {
       fprintf(errorFile, ": %s\n", s);
-    else
+    } else {
       fprintf(errorFile, ": %s\n", s+13);
-  } else
+    }
+  } else {
     fprintf(errorFile, ": Reading token %s\n", yytname[YYTRANSLATE(yychar)]);
+  }
 }
 
