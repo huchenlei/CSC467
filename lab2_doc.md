@@ -1,4 +1,5 @@
 # Lab2 documentation
+We used the Start Code for Lab2.
 ## Testing
 Test the code with
 ```
