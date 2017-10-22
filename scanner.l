@@ -50,6 +50,7 @@ int yyline = 1;
 "<="                          { yOUT(LEQ); }
 ">="                          { yOUT(GEQ); }
 "=="                          { yOUT(EQ); }
+","                           { yOUT(yytext[0]); }
 
 const                         { yOUT(CONST); }
 bool                          { yOUT(BOOL_T); }

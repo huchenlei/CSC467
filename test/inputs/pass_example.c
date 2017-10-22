@@ -22,6 +22,8 @@
   shade = shade + coeff[1] * fCol;
   shade = shade + coeff[2] * fCol;
   gl_FragColor = shade;
+  {if (2--123) dosomething = -2^2^3;}
+  {a = 2*3+4;}
 }
 
 /* The following should not be accepted */

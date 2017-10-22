@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $project_root = $ENV{'HOME'} . '/csc467';
+my $project_root = './';
 my $file_dir = "$project_root/test/inputs";
 opendir my $dir, $file_dir or die "Cannot open dir: $! \n";
 my @test_files = readdir $dir;

@@ -2,7 +2,7 @@
 /***********************************************************************
  * --YOUR GROUP INFO SHOULD GO HERE--
  *  huchenle 1002030651
- * 
+ *  rongzhen Cui 1000221823
  *   Interface to the parser module for CSC467 course project.
  * 
  *   Phase 2: Implement context free grammar for source language, and
@@ -82,15 +82,15 @@ enum {
 %token <as_float> FLOAT_C
 %token <as_int>   INT_C
 %token <as_str>   ID
-%token <as_func>  FUNC
 
-%left     '|'
-%left     '&'
-%nonassoc '=' NEQ '<' LEQ '>' GEQ
+%left     OR
+%left     AND
+%left EQ NEQ '<' LEQ '>' GEQ
 %left     '+' '-'
 %left     '*' '/'
 %right    '^'
-%nonassoc '!' UMINUS
+%left '!' UMINUS
+%left '[' ']' '(' ')'
 
 %start    program
 
@@ -103,105 +103,97 @@ enum {
  *       language grammar
  *    2. Implement the trace parser option of the compiler
  ***********************************************************************/
-
 program
-:   scope    { yTRACE("program -> scope"); }
-;
+  :  scope                               {yTRACE("program -> scope");}
+  ;
 scope
-:   '{' declarations statements '}'    { yTRACE("scope -> { declarations statements }"); }
-;
+  :  '{' declarations statements '}'     {yTRACE("scope -> { declarations statements }");}
+  ;
 declarations
-:   declarations declaration    { yTRACE("declarations -> declarations declaration"); }
-|   /* epsilon */               { yTRACE("declarations -> epsilon"); }
-;
-declaration
-:   type ID ';'                         { yTRACE("declaration -> type ID ;"); }
-|   type ID '=' expression ';'          { yTRACE("declaration -> type ID = expression ;"); }
-|   CONST type ID '=' expression ';'    { yTRACE("declaration -> CONST type ID '=' expression ;"); }
-;
+  :  declarations declaration            {yTRACE("declarations -> declarations declaration");}
+  |  /*epsilon*/                         {yTRACE("declarations -> epsilon");}
+  ;
 statements
-:   statements statement    { yTRACE("statements -> statements statement"); }
-|   /* epsilon */           { yTRACE("statements -> epsilon"); }
-;
+  :  statements statement                {yTRACE("statements -> statements statement");}
+  |                                      {yTRACE("statements -> epsilon");}
+  ;
+declaration
+  :  type ID ';'                         {yTRACE("declaration -> type ID;");}
+  |  type ID '=' expression ';'          {yTRACE("declaration -> type ID = expression;");}
+  |  CONST type ID '=' expression ';'    {yTRACE("declaration -> const type ID = expression;");}
+  ;
 statement
-:   variable '=' expression ';'                       { yTRACE("statement -> variable = expression ;"); }
-|   IF '(' expression ')' statement else_statement    { yTRACE("statement -> IF ( expression ) statement else_statement"); }
-|   WHILE '(' expression ')' statement                { yTRACE("statement -> WHILE ( expression ) statement"); }
-|   scope                            { yTRACE("statement -> scope"); }
-|   ';'                              { yTRACE("statement -> ;"); }
-;
+  :  variable '=' expression ';'         {yTRACE("statement -> variable = expression;");}
+  |  IF '(' expression ')' statement else_statement
+										 {yTRACE("statement -> if (expression) statement else_statement");}
+  |  WHILE '(' expression ')' statement  {yTRACE("statement -> while (expression) statement");}
+  |  scope                               {yTRACE("statement -> scope");}
+  |  ';'                                 {yTRACE("statement -> ;");}
+  ;
 else_statement
-:   ELSE statement      { yTRACE("else_statement -> ELSE statement"); }
-|   /* epsilon */       { yTRACE("else_statement -> epsilon"); }
-;
-arguments_opt
-:   arguments           { yTRACE("arguments_opt -> arguments"); }
-|   /* epsilon */       { yTRACE("arguments_opt -> epsilon"); }
-;
-arguments
-: arguments ',' expression    { yTRACE("arguments -> arguments , expression");}
-| expression                  { yTRACE("arguments -> expression");}
-;
-expression
-:   INT_C                             { yTRACE("expression -> INT_C");}
-|   FLOAT_C                           { yTRACE("expression -> FLOAT_C");}
-|   '!' expression            { yTRACE("expression -> ! expression");}
-|   '-' expression %prec UMINUS    { /*prec means use different precedence rule as in minus*/ yTRACE("expression -> - expression");}
-|   expression AND expression           { yTRACE("expression -> expression AND expression");}
-|   expression OR expression            { yTRACE("expression -> expression OR expression");}
-|   expression EQ expression            { yTRACE("expression -> expression EQ expression");}
-|   expression NEQ expression           { yTRACE("expression -> expression NEQ expression");}
-|   expression '<' expression           { yTRACE("expression -> expression < expression");}
-|   expression LEQ expression           { yTRACE("expression -> expression <= expression");}
-|   expression '>' expression           { yTRACE("expression -> expression > expression");}
-|   expression GEQ expression           { yTRACE("expression -> expression >= expression");}
-|   expression '+' expression           { yTRACE("expression -> expression + expression");}
-|   expression '-' expression           { yTRACE("expression -> expression - expression");}
-|   expression '*' expression           { yTRACE("expression -> expression * expression");}
-|   expression '/' expression           { yTRACE("expression -> expression / expression");}
-|   expression '^' expression           { yTRACE("expression -> expression ^ expression");}
-|   TRUE_C                            { yTRACE("expression -> TRUE_C");}
-|   FALSE_C                           { yTRACE("expression -> FALSE_C");}
-|   '(' expression ')'                { yTRACE("expression -> ( expression )");}
-|   variable                          { yTRACE("expression -> variable");}
-|   constructor                       { yTRACE("expression -> constructor");}
-|   function                          { yTRACE("expression -> function");}
-;
-variable
-:   ID                  { yTRACE("variable -> ID");}
-|   ID '[' INT_C ']'    { yTRACE("variable -> ID [ INT_C ]");}
-;
-constructor
-:   type '(' arguments_opt ')'    { yTRACE("constructor -> type ( arguments_opt )");}
-;
-function
-:   FUNC '(' arguments_opt ')'
-{
-  // Display the function type in the trace.
-  switch ($1)
-    {
-    case DP3:
-      yTRACE("function -> dp3 ( arguments_opt )");
-      break;
-    case LIT:
-      yTRACE("function -> lit ( arguments_opt )");
-      break;
-    case RSQ:
-      yTRACE("function -> rsq ( arguments_opt )");
-      break;
-    }
-}
-;
+  :  ELSE statement                      {yTRACE("else_statement -> else statement");}
+  |  /*epsilon*/                         {yTRACE("else_statement -> epsilon");}
+  ;
 type
-:   INT_T     { yTRACE("type -> INT_T"); }
-|   BOOL_T    { yTRACE("type -> BOOL_T"); }
-|   FLOAT_T   { yTRACE("type -> FLOAT_T"); }
-|   VEC_T     { /*Display vector length in trace*/ char str[20]; snprintf(str, 20, "type -> VEC%d_T", $1+1); yTRACE(str); }
-|   IVEC_T    { char str[20]; snprintf(str, 20, "type -> IVEC%d_T", $1+1); yTRACE(str); }
-|   BVEC_T    { char str[20]; snprintf(str, 20, "type -> BVEC%d_T", $1+1); yTRACE(str); }
-;
-
-
+  :  INT_T                               {yTRACE("type -> int_t");}
+  |  FLOAT_T                             {yTRACE("type -> float_t");}
+  |  BOOL_T                              {yTRACE("type -> bool_t");}
+  |  VEC_T                               {yTRACE("type -> vec_t");}
+  |  IVEC_T                              {yTRACE("type -> ivec_t");}
+  |  BVEC_T                              {yTRACE("type -> bvec_t");}
+  ;
+expression
+  :  constructor                         {yTRACE("expression -> constructor");}
+  |  function                            {yTRACE("expression -> function");}
+  |  INT_C                               {yTRACE("expression -> int");}
+  |  FLOAT_C                             {yTRACE("expression -> float");}
+  |  variable                            {yTRACE("expression -> variable");}
+  |  expression binary_op expression     {yTRACE("expression -> expression binary_op expression");}
+  |  unary_op expression                 {yTRACE("expression -> unary_op expression");}
+  |  TRUE_C                              {yTRACE("expression -> true");}
+  |  FALSE_C                             {yTRACE("expression -> false");}
+  |  '(' expression ')'                  {yTRACE("expression -> (expression)");}
+  ;
+variable
+  :  ID                                  {yTRACE("variable -> ID");}
+  |  ID '[' INT_C ']'                    {yTRACE("variable -> ID[int]");}
+  ;
+unary_op
+  :  '!'                                 {yTRACE("unary_op -> !");}
+  |  '-'      %prec UMINUS               {yTRACE("unary_op -> -");} 
+  ;
+binary_op
+  :  AND                                 {yTRACE("binary_op -> &&");}
+  |  OR                                  {yTRACE("binary_op -> ||");}
+  |  EQ                                  {yTRACE("binary_op -> ==");}
+  |  NEQ                                 {yTRACE("binary_op -> !=");}
+  |  LEQ                                 {yTRACE("binary_op -> <=");}
+  |  GEQ                                 {yTRACE("binary_op -> >=");}
+  |  '+'                                 {yTRACE("binary_op -> +");}
+  |  '-'                                 {yTRACE("binary_op -> -");}
+  |  '*'								 {yTRACE("binary_op -> *");}
+  |  '/'								 {yTRACE("binary_op -> /");}
+  |  '^'								 {yTRACE("binary_op -> ^");}
+  |  '<'                                 {yTRACE("binary_op -> <");}
+  |  '>'                                 {yTRACE("binary_op -> >");}
+  ;
+constructor
+  :  type '(' arguments ')'              {yTRACE("constructor -> type(arguments)");}
+  ;
+function
+  :  function_name '(' arguments_opt ')' {yTRACE("function -> function_name(arguments_opt)");}
+  ;
+function_name
+  :  FUNC                                {yTRACE("function_name -> func");}
+  ;
+arguments_opt
+  :  arguments                           {yTRACE("arguments_opt -> arguments");}
+  |  /*epsilon*/                         {yTRACE("arguments_opt -> epsilon");}
+  ;
+arguments
+  :  arguments ',' expression            {yTRACE("arguments -> arguments,expression");}
+  |  expression                          {yTRACE("arguments -> expression");}
+  ;
 %%
 
 /***********************************************************************ol
