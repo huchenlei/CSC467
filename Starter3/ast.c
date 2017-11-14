@@ -195,6 +195,13 @@ void ast_pre_print(node *ast, int depth){
 			fprintf(dumpFile, "IF ");
 			break;
 		
+		case UNARY_EXPRESION_NODE:
+			fprintf(dumpFile, "UNARY %s %c ", "TYPE??", char(ast->unary_expr.op));//TODO:
+			break;
+
+		case BINARY_EXPRESSION_NODE:
+			//TODO: STOP HERE
+			break;
 		default: break;
 	}
 }
