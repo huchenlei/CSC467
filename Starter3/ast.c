@@ -25,7 +25,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 	
   // type
   case TYPE_NODE:
-	ast->type.type_name = va_arg(args, int);
+	ast->type.type_code = va_arg(args, int);
 	ast->type.vec_size = va_arg(args, int) + 1;
  	break;
 
@@ -76,17 +76,17 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 	break;
 
   case BOOL_NODE:
-	ast->literal_expr.type_name = BOOL_T;
+	ast->literal_expr.type_code = BOOL_T;
 	ast->literal_expr.int_val = va_arg(args, int);
 	break;
 	
   case INT_NODE:
-	ast->literal_expr.type_name = INT_T;
+	ast->literal_expr.type_code = INT_T;
 	ast->literal_expr.int_val = va_arg(args, int);
 	break;
 
   case FLOAT_NODE:
-	ast->literal_expr.type_name = FLOAT_T;
+	ast->literal_expr.type_code = FLOAT_T;
 	ast->literal_expr.float_val = va_arg(args, double);
   	break;
 
@@ -94,7 +94,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 	ast->variable.var_name = va_arg(args, char *);
 	ast->variable.is_array = va_arg(args, int);
 	ast->variable.index = va_arg(args, int);
-        ast->variable.type_name = -1;
+        ast->variable.type_code = -1;
         ast->variable.vec_size = -1;
 	break;
 
@@ -119,7 +119,7 @@ void ast_print(node * ast) {
 }
 
 const char *get_type_name(node *type_node) {
-  switch(type_node->type.type_name) {
+  switch(type_node->type.type_code) {
     case FLOAT_T:
       return "float";
     case INT_T:

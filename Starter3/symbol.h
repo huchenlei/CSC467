@@ -16,13 +16,18 @@ struct _st_entry;
 struct _st {
   size_t depth;
   size_t entry_num;
+  size_t max_entry;
   struct _st* parent_scope;
   struct _st_entry* stack_base;
   struct _st_entry* stack;
 };
 
 struct _st_entry {
-
+  int is_const;
+  int has_init;
+  int type_code;
+  int vec_size;
+  char var_name[32];
 };
 
 typedef _st_entry st_entry;

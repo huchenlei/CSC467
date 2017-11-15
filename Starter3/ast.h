@@ -60,7 +60,7 @@ struct node_ {
     } scope;
 	
 	struct {
- 	  int type_name;
+ 	  int type_code;
 	  int vec_size;
 	} type;
 	
@@ -90,7 +90,7 @@ struct node_ {
     } binary_node;
 
     struct {
-      int type_name;
+      int type_code;
       union {
         int int_val;
         float float_val;
@@ -101,7 +101,7 @@ struct node_ {
 	  char *var_name;
 	  int is_array;
 	  int index;
-          int type_name;
+          int type_code;
           int vec_size;
 	} variable;
 	
