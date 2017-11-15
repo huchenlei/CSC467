@@ -22,7 +22,7 @@ typedef enum {
   UNKNOWN               = 0,
 
   SCOPE_NODE            = (1 << 0),
-  
+
   EXPRESSION_NODE       = (1 << 2),
   UNARY_EXPRESION_NODE  = (1 << 2) | (1 << 3),
   BINARY_EXPRESSION_NODE= (1 << 2) | (1 << 4),

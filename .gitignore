@@ -7,3 +7,6 @@ parser.tab.h
 parser.c
 y.output
 compiler467
+
+# ignore netbeans config folder
+nbproject/

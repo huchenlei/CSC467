@@ -22,8 +22,6 @@ node *ast_allocate(node_kind kind, ...) {
   va_start(args, kind); 
 
   switch(kind) {
-  
-	
     // type
   case TYPE_NODE:
     ast->type.type_name = va_arg(args, int);
