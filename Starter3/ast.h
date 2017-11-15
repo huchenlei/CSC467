@@ -52,22 +52,22 @@ struct node_ {
 
   // an example of tagging each node with a type
   node_kind kind;
-
+  int line;
   union {
     struct {
       // declarations?
       // statements?
     } scope;
-
-    struct {
-      int type_name;
-      int vec_num;
-    } type;
-
-    struct {
-      int func_name;
-      node *args;
-    } func_expr;
+	
+	struct {
+ 	  int type_name;
+	  int vec_size;
+	} type;
+	
+	struct {
+	  int func_name;
+	  node *args;
+	} func_expr;
 
     struct {
       int op;
@@ -97,11 +97,13 @@ struct node_ {
       };
     } literal_expr;
 	
-    struct {
-      char *var_name;
-      int is_array;
-      int length;
-    } variable;
+	struct {
+	  char *var_name;
+	  int is_array;
+	  int index;
+          int type_name;
+          int vec_size;
+	} variable;
 	
     struct {
       int is_const;
@@ -121,7 +123,7 @@ struct node_ {
   };
 };
 
-node *ast_allocate(node_kind type, ...);
+node *ast_allocate(node_kind type, int yyline, ...);
 void ast_free(node *ast);
 void ast_print(node * ast);
 void ast_pre_print(node *ast, int depth);
