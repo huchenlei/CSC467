@@ -19,14 +19,16 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
   memset(ast, 0, sizeof *ast);
   ast->kind = kind;
   ast->line = yyline;
+  ast->type_code = -1;
+  ast->vec_size = -1;
   va_start(args, yyline); 
   switch(kind) {
   
 	
   // type
   case TYPE_NODE:
-	ast->type.type_code = va_arg(args, int);
-	ast->type.vec_size = va_arg(args, int) + 1;
+	ast->type_code = va_arg(args, int);
+	ast->vec_size = va_arg(args, int) + 1;
  	break;
 
   case DECLARATION_NODE:
@@ -76,17 +78,20 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 	break;
 
   case BOOL_NODE:
-	ast->literal_expr.type_code = BOOL_T;
+	ast->type_code = BOOL_T;
+        ast->vec_size = 1;
 	ast->literal_expr.int_val = va_arg(args, int);
 	break;
 	
   case INT_NODE:
-	ast->literal_expr.type_code = INT_T;
+	ast->type_code = INT_T;
+        ast->vec_size = 1;
 	ast->literal_expr.int_val = va_arg(args, int);
 	break;
 
   case FLOAT_NODE:
-	ast->literal_expr.type_code = FLOAT_T;
+	ast->type_code = FLOAT_T;
+        ast->vec_size = 1;
 	ast->literal_expr.float_val = va_arg(args, double);
   	break;
 
@@ -94,8 +99,8 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 	ast->variable.var_name = va_arg(args, char *);
 	ast->variable.is_array = va_arg(args, int);
 	ast->variable.index = va_arg(args, int);
-        ast->variable.type_code = -1;
-        ast->variable.vec_size = -1;
+        ast->type_code = -1;
+        ast->vec_size = -1;
 	break;
 
 
@@ -118,8 +123,8 @@ void ast_print(node * ast) {
 	fprintf(dumpFile, "\n");
 }
 
-const char *get_type_name(node *type_node) {
-  switch(type_node->type.type_code) {
+const char *get_type_name(node *ast) {
+  switch(ast->type_code) {
     case FLOAT_T:
       return "float";
     case INT_T:
@@ -127,7 +132,7 @@ const char *get_type_name(node *type_node) {
     case BOOL_T:
       return "bool";
     case BVEC_T:
-      switch(type_node->type.vec_size){
+      switch(ast->vec_size){
         case 2:
           return "bvec2";
         case 3:
@@ -136,7 +141,7 @@ const char *get_type_name(node *type_node) {
           return "bvec4";
       }
     case IVEC_T:
-      switch(type_node->type.vec_size){
+      switch(ast->vec_size){
         case 2:
           return "ivec2";
         case 3:
@@ -145,7 +150,7 @@ const char *get_type_name(node *type_node) {
           return "ivec4";
       }
     case VEC_T:
-      switch(type_node->type.vec_size){
+      switch(ast->vec_size){
         case 2:
           return "vec2";
         case 3:
@@ -155,6 +160,19 @@ const char *get_type_name(node *type_node) {
       }
     default:
       return "???";
+  }
+}
+
+const char *get_func_name(int code) {
+  switch(code) {
+    case 0:
+      return "dp3";
+    case 1:
+      return "rsq";
+    case 2:
+      return "lit";
+    default:
+      return "?FUNC?";
   }
 }
 
@@ -207,97 +225,115 @@ const char* get_binary_op_str(int op){
 }
 
 void ast_pre_print(node *ast, int depth){
-	switch(ast->kind){
-		case SCOPE_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "SCOPE");
-			break;
+	switch (ast->kind) {
+        case SCOPE_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "SCOPE");
+            break;
 
-		case DECLARATIONS_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "DECLARATIONS");
-			break;
+        case DECLARATIONS_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "DECLARATIONS");
+            break;
 
-		case DECLARATION_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "DECLARATION %s %s", ast->declaration.var_name, get_type_name(ast->declaration.type_node));
-			break;
+        case DECLARATION_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "DECLARATION %s %s",
+                    ast->declaration.var_name, get_type_name(ast));
+            break;
 
-		case STATEMENT_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "STATEMENTS");
-			break;
-		
-		case ASSIGNMENT_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "ASSIGN %s", "TYPE??"); //TODO: need to get the type of variable, implement after symbol table
-			break;
+        case STATEMENT_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "STATEMENTS");
+            break;
 
-		case IF_STATEMENT_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "IF");
-			break;
-		
-		case UNARY_EXPRESION_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "UNARY %s %c", "TYPE??", char(ast->unary_expr.op));//TODO:
-			break;
+        case ASSIGNMENT_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "ASSIGN %s", get_type_name(ast)); //TODO
+            break;
 
-		case BINARY_EXPRESSION_NODE:
-			print_indent(depth,1,1);
-			fprintf(dumpFile, "BINARY %s %s", "TYPE??", get_binary_op_str(ast->binary_expr.op));//TODO:
-			break;
+        case IF_STATEMENT_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "IF");
+            break;
 
-		case VAR_NODE:
-			if (ast->variable.is_array){
-				print_indent(depth,1,1);
-				fprintf(dumpFile, "INDEX %s %s %d", "TYPE??", ast->variable.var_name, ast->variable.index);//TODO:
-			}
-			else{
-				fprintf(dumpFile, " %s", ast->variable.var_name);
-			}	
-			break;
-		case BOOL_NODE:
-			fprintf(dumpFile, ast->literal_expr.int_val ? " true":" false");
-			break;
+        case UNARY_EXPRESION_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "UNARY %s %c", get_type_name(ast),
+                    char(ast->unary_expr.op));
+            break;
 
-		case INT_NODE:
-			fprintf(dumpFile, " %d", ast->literal_expr.int_val);
-			break;
-	
-		case FLOAT_NODE:
-			fprintf(dumpFile, " %f", ast->literal_expr.float_val);
-			break;
+        case BINARY_EXPRESSION_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "BINARY %s %s", get_type_name(ast),
+                    get_binary_op_str(ast->binary_expr.op));
+            break;
 
-		case VAR_EXPRESSION_NODE:
-		case NESTED_EXPRESSION_NODE:
-		case NESTED_SCOPE_NODE:
-			break;
+        case VAR_NODE:
+            if (ast->variable.is_array) {
+                print_indent(depth, 1, 1);
+                fprintf(dumpFile, "INDEX %s %s %d",
+                        get_type_name(ast),
+                        ast->variable.var_name,
+                        ast->variable.index); //TODO:
+            } else {
+                fprintf(dumpFile, " %s", ast->variable.var_name);
+            }
+            break;
+        case BOOL_NODE:
+            fprintf(dumpFile, ast->literal_expr.int_val ? " true" : " false");
+            break;
 
-		default:
-			print_indent(depth,1,1); 
-			break;
-	}
+        case INT_NODE:
+            fprintf(dumpFile, " %d", ast->literal_expr.int_val);
+            break;
+
+        case FLOAT_NODE:
+            fprintf(dumpFile, " %f", ast->literal_expr.float_val);
+            break;
+            
+        case VAR_EXPRESSION_NODE:
+        case NESTED_EXPRESSION_NODE:
+        case NESTED_SCOPE_NODE:
+        case TYPE_NODE: 
+        case ARGUMENTS_NODE:
+            //print nothing for those nodes
+            break;
+        case CONSTRUCTOR_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "CALL %s", get_type_name(ast));
+            break;
+        case FUNCTION_NODE:
+            print_indent(depth, 1, 1);
+            fprintf(dumpFile, "CALL %s", get_func_name(ast->func_expr.func_name));
+            break;    
+        default:
+            print_indent(depth, 1, 1);
+            break;
+    }
 }
 
 
 
-void ast_post_print(node *ast, int depth){
-	switch(ast->kind){
-		case VAR_NODE:
-			if (ast->variable.is_array){
-				print_indent(depth, 0, 0);
-			}
-			break;
-		case BOOL_NODE:
-		case INT_NODE:
-		case FLOAT_NODE:
-		case VAR_EXPRESSION_NODE:
-		case NESTED_EXPRESSION_NODE:
-		case NESTED_SCOPE_NODE:
-			break;
-		default: print_indent(depth, 0, 1);
-	}
+void ast_post_print(node *ast, int depth) {
+    switch (ast->kind) {
+        case VAR_NODE:
+            if (ast->variable.is_array) {
+                print_indent(depth, 0, 0);
+            }
+            break;
+        case BOOL_NODE:
+        case INT_NODE:
+        case FLOAT_NODE:
+        case VAR_EXPRESSION_NODE:
+        case NESTED_EXPRESSION_NODE:
+        case NESTED_SCOPE_NODE:
+        case TYPE_NODE:
+        case ARGUMENTS_NODE:
+            //print nothing for those nodes
+            break;
+        default: print_indent(depth, 0, 1);
+    }
 	
 }
 
@@ -308,7 +344,6 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 	if (pre_func) pre_func(ast, depth);
 	
 	switch(ast->kind){
-		case CONSTRUCTOR_NODE:
   		case ARGUMENTS_NODE:
   		case SCOPE_NODE:
   		case DECLARATIONS_NODE:
@@ -327,7 +362,9 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 			ast_visit(ast->if_statement.inside_if, depth+1, pre_func, post_func);
 			ast_visit(ast->if_statement.inside_else, depth+1, pre_func, post_func);
 			break;
-
+                case CONSTRUCTOR_NODE:
+                        ast_visit(ast->binary_node.right, depth+1, pre_func, post_func);
+			break;
 		case FUNCTION_NODE:
 			ast_visit(ast->func_expr.args, depth+1, pre_func, post_func);
 			break;

@@ -53,16 +53,13 @@ struct node_ {
   // an example of tagging each node with a type
   node_kind kind;
   int line;
+  int type_code;
+  int vec_size;
   union {
     struct {
       // declarations?
       // statements?
     } scope;
-	
-	struct {
- 	  int type_code;
-	  int vec_size;
-	} type;
 	
 	struct {
 	  int func_name;
@@ -90,7 +87,6 @@ struct node_ {
     } binary_node;
 
     struct {
-      int type_code;
       union {
         int int_val;
         float float_val;
@@ -101,8 +97,6 @@ struct node_ {
 	  char *var_name;
 	  int is_array;
 	  int index;
-          int type_code;
-          int vec_size;
 	} variable;
 	
     struct {
