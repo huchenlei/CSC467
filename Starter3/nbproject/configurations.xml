@@ -3,18 +3,22 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
       <in>ast.c</in>
-      <in>ast.h</in>
-      <in>common.h</in>
       <in>compiler467.c</in>
       <in>globalvars.c</in>
       <in>parser.c</in>
       <in>parser.tab.c</in>
-      <in>parser.tab.h</in>
       <in>semantic.c</in>
-      <in>semantic.h</in>
       <in>symbol.c</in>
-      <in>symbol.h</in>
     </df>
+    <logicalFolder name="Starter3"
+                   displayName="Starter3"
+                   projectFiles="true"
+                   root="../../../Starter3">
+      <itemPath>../../../Starter3/ast.c</itemPath>
+      <itemPath>../../../Starter3/ast.h</itemPath>
+      <itemPath>../../../Starter3/common.h</itemPath>
+      <itemPath>../../../Starter3/parser.tab.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
                    projectFiles="false"
@@ -128,29 +132,21 @@
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
-      <item path="ast.c" ex="false" tool="0" flavor2="0">
+      <item path="../../../Starter3/ast.c" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ast.h" ex="false" tool="3" flavor2="0">
+      <item path="ast.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="common.h" ex="false" tool="3" flavor2="0">
+      <item path="compiler467.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="compiler467.c" ex="false" tool="0" flavor2="0">
+      <item path="globalvars.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="globalvars.c" ex="false" tool="0" flavor2="0">
+      <item path="parser.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="parser.c" ex="false" tool="0" flavor2="0">
+      <item path="parser.tab.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="parser.tab.c" ex="false" tool="0" flavor2="0">
+      <item path="semantic.c" ex="false" tool="0" flavor2="2">
       </item>
-      <item path="parser.tab.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="semantic.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="semantic.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="symbol.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="symbol.h" ex="false" tool="3" flavor2="0">
+      <item path="symbol.c" ex="false" tool="0" flavor2="2">
       </item>
     </conf>
   </confs>

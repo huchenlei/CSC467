@@ -52,7 +52,7 @@ struct node_ {
 
   // an example of tagging each node with a type
   node_kind kind;
-
+  int line;
   union {
     struct {
       // declarations?
@@ -123,7 +123,7 @@ struct node_ {
   };
 };
 
-node *ast_allocate(node_kind type, ...);
+node *ast_allocate(node_kind type, int yyline, ...);
 void ast_free(node *ast);
 void ast_print(node * ast);
 void ast_pre_print(node *ast, int depth);

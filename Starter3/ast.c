@@ -11,16 +11,15 @@
 
 node *ast = NULL;
 
-node *ast_allocate(node_kind kind, ...) {
+node *ast_allocate(node_kind kind, int yyline, ...) {
   va_list args;
-
+  
   // make the node
   node *ast = (node *) malloc(sizeof(node));
   memset(ast, 0, sizeof *ast);
   ast->kind = kind;
-
-  va_start(args, kind); 
-
+  ast->line = yyline;
+  va_start(args, yyline); 
   switch(kind) {
   
 	
@@ -96,7 +95,7 @@ node *ast_allocate(node_kind kind, ...) {
 	ast->variable.is_array = va_arg(args, int);
 	ast->variable.index = va_arg(args, int);
         ast->variable.type_name = -1;
-        ast->variable.var_name = -1;
+        ast->variable.vec_size = -1;
 	break;
 
 
