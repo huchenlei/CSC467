@@ -58,16 +58,16 @@ struct node_ {
       // declarations?
       // statements?
     } scope;
-	
-	struct {
- 	  int type_name;
-	  int vec_num;
-	} type;
-	
-	struct {
-	  int func_name;
-	  node *args;
-	} func_expr;
+
+    struct {
+      int type_name;
+      int vec_num;
+    } type;
+
+    struct {
+      int func_name;
+      node *args;
+    } func_expr;
 
     struct {
       int op;
@@ -79,29 +79,29 @@ struct node_ {
       node *left;
       node *right;
     } binary_expr;
-	
-	struct {
-	  node *right;
-	} unary_node;
 
-	struct {
-	  node *left;
-	  node *right;
-	} binary_node;
+    struct {
+      node *right;
+    } unary_node;
+
+    struct {
+      node *left;
+      node *right;
+    } binary_node;
+
+    struct {
+      int type_name;
+      union {
+        int int_val;
+        float float_val;
+      };
+    } literal_expr;
 	
-	struct {
-	  int type_name;
-	  union {
-		int int_val;
-		float float_val;
-	  };
-	} literal_expr;
-	
-	struct {
-	  char *var_name;
-	  int is_array;
-	  int length;
-	} variable;
+    struct {
+      char *var_name;
+      int is_array;
+      int length;
+    } variable;
 	
     struct {
       int is_const;
@@ -110,12 +110,12 @@ struct node_ {
       node *expr;
     } declaration;
 
-	struct {
-	  node *condition;
-	  node *inside_if;
-	  node *inside_else;
+    struct {
+      node *condition;
+      node *inside_if;
+      node *inside_else;
 
-	} if_statement;
+    } if_statement;
 
     // etc.
   };
