@@ -100,7 +100,7 @@ struct node_ {
 	struct {
 	  char *var_name;
 	  int is_array;
-	  int length;
+	  int index;
 	} variable;
 	
     struct {

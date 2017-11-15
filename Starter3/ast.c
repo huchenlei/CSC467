@@ -94,7 +94,7 @@ node *ast_allocate(node_kind kind, ...) {
   case VAR_NODE:
 	ast->variable.var_name = va_arg(args, char *);
 	ast->variable.is_array = va_arg(args, int);
-	ast->variable.length = va_arg(args, int);
+	ast->variable.index = va_arg(args, int);
 	break;
 
 
@@ -158,59 +158,146 @@ const char *get_type_name(node *type_node) {
 }
 
 
-void print_indent(int depth){
-	fprintf(dumpFile, "\n");
-	int i;
-    for (i = 0; i < depth; i++) {
-      fprintf(dumpFile, "    ");
-    }
+void print_indent(int depth, int is_open, int is_newline){
+	if (is_newline) {
+		fprintf(dumpFile, "\n");
+		int i;
+    	for (i = 0; i < depth; i++) {
+      		fprintf(dumpFile, "    ");
+    	}
+	}
+
+	fprintf(dumpFile, is_open ? "(" : ")");
+}
+
+const char* get_binary_op_str(int op){
+  switch(op) {
+    case '-':
+      return "-";
+    case '!':
+      return "!";
+    case AND:
+      return "&&";
+    case OR:
+      return "||";
+    case EQ:
+      return "==";
+    case NEQ:
+      return "!=";
+    case '<':
+      return "<";
+    case LEQ:
+      return "<=";
+    case '>':
+      return ">";
+    case GEQ:
+      return ">=";
+    case '+':
+      return "+";
+    case '*':
+      return "*";
+    case '/':
+      return "/";
+    case '^':
+      return "^";
+    default:
+      return "";
+  }
 }
 
 void ast_pre_print(node *ast, int depth){
-	print_indent(depth);
-	fprintf(dumpFile, "(");
 	switch(ast->kind){
 		case SCOPE_NODE:
-			fprintf(dumpFile, "SCOPE ");
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "SCOPE");
 			break;
 
 		case DECLARATIONS_NODE:
-			fprintf(dumpFile, "DECLARATIONS ");
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "DECLARATIONS");
 			break;
 
 		case DECLARATION_NODE:
-			fprintf(dumpFile, "DECLARATION %s %s ", ast->declaration.var_name, get_type_name(ast->declaration.type_node));
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "DECLARATION %s %s", ast->declaration.var_name, get_type_name(ast->declaration.type_node));
 			break;
 
 		case STATEMENT_NODE:
-			fprintf(dumpFile, "STATEMENTS ");
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "STATEMENTS");
 			break;
 		
 		case ASSIGNMENT_NODE:
-			fprintf(dumpFile, "ASSIGN %s %s ", "TYPE??", 
-				ast->binary_node.left->variable.var_name); //TODO: need to get the type of variable, implement after symbol table
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "ASSIGN %s", "TYPE??"); //TODO: need to get the type of variable, implement after symbol table
 			break;
 
 		case IF_STATEMENT_NODE:
-			fprintf(dumpFile, "IF ");
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "IF");
 			break;
 		
 		case UNARY_EXPRESION_NODE:
-			fprintf(dumpFile, "UNARY %s %c ", "TYPE??", char(ast->unary_expr.op));//TODO:
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "UNARY %s %c", "TYPE??", char(ast->unary_expr.op));//TODO:
 			break;
 
 		case BINARY_EXPRESSION_NODE:
-			//TODO: STOP HERE
+			print_indent(depth,1,1);
+			fprintf(dumpFile, "BINARY %s %s", "TYPE??", get_binary_op_str(ast->binary_expr.op));//TODO:
 			break;
-		default: break;
+
+		case VAR_NODE:
+			if (ast->variable.is_array){
+				print_indent(depth,1,1);
+				fprintf(dumpFile, "INDEX %s %s %d", "TYPE??", ast->variable.var_name, ast->variable.index);//TODO:
+			}
+			else{
+				fprintf(dumpFile, " %s", ast->variable.var_name);
+			}	
+			break;
+		case BOOL_NODE:
+			fprintf(dumpFile, ast->literal_expr.int_val ? " true":" false");
+			break;
+
+		case INT_NODE:
+			fprintf(dumpFile, " %d", ast->literal_expr.int_val);
+			break;
+	
+		case FLOAT_NODE:
+			fprintf(dumpFile, " %f", ast->literal_expr.float_val);
+			break;
+
+		case VAR_EXPRESSION_NODE:
+		case NESTED_EXPRESSION_NODE:
+		case NESTED_SCOPE_NODE:
+			break;
+
+		default:
+			print_indent(depth,1,1); 
+			break;
 	}
 }
 
 
 
 void ast_post_print(node *ast, int depth){
-	print_indent(depth);
-	fprintf(dumpFile, ")");
+	switch(ast->kind){
+		case VAR_NODE:
+			if (ast->variable.is_array){
+				print_indent(depth, 0, 0);
+			}
+			break;
+		case BOOL_NODE:
+		case INT_NODE:
+		case FLOAT_NODE:
+		case VAR_EXPRESSION_NODE:
+		case NESTED_EXPRESSION_NODE:
+		case NESTED_SCOPE_NODE:
+			break;
+		default: print_indent(depth, 0, 1);
+	}
+	
 }
 
 
@@ -225,10 +312,8 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
   		case SCOPE_NODE:
   		case DECLARATIONS_NODE:
   		case STATEMENT_NODE:
-			ast_visit(ast->binary_node.left, depth+1, pre_func, post_func);
-			ast_visit(ast->binary_node.right, depth+1, pre_func, post_func);
-			break;
 		case ASSIGNMENT_NODE:
+			ast_visit(ast->binary_node.left, depth+1, pre_func, post_func);
 			ast_visit(ast->binary_node.right, depth+1, pre_func, post_func);
 			break;
 
@@ -258,7 +343,7 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
   		case NESTED_EXPRESSION_NODE:
   		case VAR_EXPRESSION_NODE:
   		case NESTED_SCOPE_NODE:
-			ast_visit(ast->unary_node.right, depth+1, pre_func, post_func);
+			ast_visit(ast->unary_node.right, depth, pre_func, post_func);
 			break;
 		
 		default:
