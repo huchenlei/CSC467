@@ -46,7 +46,8 @@ typedef _st symbol_table;
 void scope_enter();
 void scope_leave();
 size_t scope_depth();
-int scope_declare_symbol(st_entry st);
-st_entry* scope_find_entry(const char* id);
+int scope_declare_symbol(const char* name, int is_const, int type_code, int vec_size);
+void set_inited(); // set the has_init field to true
+const st_entry* scope_find_entry(const char* id);
 
 #endif

@@ -15,10 +15,14 @@ size_t scope_depth() {
     return 0;
 }
 
-int scope_declare_symbol(st_entry st) {
-    return 0;
+int scope_declare_symbol(const char* name, int is_const, int type_code, int vec_size) {
+    return 1;
 }
 
-st_entry* scope_find_entry(const char* id) {
+void set_inited() {
+    
+}
+
+const st_entry* scope_find_entry(const char* id) {
     return (st_entry*)NULL;
 }
