@@ -27,7 +27,7 @@ node *ast_allocate(node_kind kind, ...) {
   // type
   case TYPE_NODE:
 	ast->type.type_name = va_arg(args, int);
-	ast->type.vec_num = va_arg(args, int) + 1;
+	ast->type.vec_size = va_arg(args, int) + 1;
  	break;
 
   case DECLARATION_NODE:
@@ -95,6 +95,8 @@ node *ast_allocate(node_kind kind, ...) {
 	ast->variable.var_name = va_arg(args, char *);
 	ast->variable.is_array = va_arg(args, int);
 	ast->variable.index = va_arg(args, int);
+        ast->variable.type_name = -1;
+        ast->variable.var_name = -1;
 	break;
 
 
@@ -126,7 +128,7 @@ const char *get_type_name(node *type_node) {
     case BOOL_T:
       return "bool";
     case BVEC_T:
-      switch(type_node->type.vec_num){
+      switch(type_node->type.vec_size){
         case 2:
           return "bvec2";
         case 3:
@@ -135,7 +137,7 @@ const char *get_type_name(node *type_node) {
           return "bvec4";
       }
     case IVEC_T:
-      switch(type_node->type.vec_num){
+      switch(type_node->type.vec_size){
         case 2:
           return "ivec2";
         case 3:
@@ -144,7 +146,7 @@ const char *get_type_name(node *type_node) {
           return "ivec4";
       }
     case VEC_T:
-      switch(type_node->type.vec_num){
+      switch(type_node->type.vec_size){
         case 2:
           return "vec2";
         case 3:

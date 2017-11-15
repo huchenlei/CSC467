@@ -61,7 +61,7 @@ struct node_ {
 	
 	struct {
  	  int type_name;
-	  int vec_num;
+	  int vec_size;
 	} type;
 	
 	struct {
@@ -101,6 +101,8 @@ struct node_ {
 	  char *var_name;
 	  int is_array;
 	  int index;
+          int type_name;
+          int vec_size;
 	} variable;
 	
     struct {

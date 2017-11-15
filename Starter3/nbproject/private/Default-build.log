@@ -1,0 +1,52 @@
+g++ -g -O0 -Wall   -c -o compiler467.o compiler467.c
+compiler467.c: In function 'void getOpts(int, char**)':
+compiler467.c:192:71: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             outputFile = fileOpen (argstr[i], "w", DEFAULT_OUTPUT_FILE);
+                                                                       ^
+compiler467.c:195:72: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             outputFile = fileOpen (&optarg[2], "w", DEFAULT_OUTPUT_FILE);
+                                                                        ^
+compiler467.c:201:70: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             errorFile = fileOpen (argstr[i], "w", DEFAULT_OUTPUT_FILE);
+                                                                      ^
+compiler467.c:203:70: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             errorFile = fileOpen (&optarg[2], "w", DEFAULT_ERROR_FILE);
+                                                                      ^
+compiler467.c:208:69: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             traceFile = fileOpen (argstr[i], "w", DEFAULT_TRACE_FILE);
+                                                                     ^
+compiler467.c:210:70: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             traceFile = fileOpen (&optarg[2], "w", DEFAULT_TRACE_FILE);
+                                                                      ^
+compiler467.c:215:67: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             dumpFile = fileOpen (argstr[i], "w", DEFAULT_DUMP_FILE);
+                                                                   ^
+compiler467.c:217:68: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             dumpFile = fileOpen (&optarg[2], "w", DEFAULT_DUMP_FILE);
+                                                                    ^
+compiler467.c:222:76: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             runInputFile = fileOpen (argstr[i], "r", DEFAULT_RUN_INPUT_FILE);
+                                                                            ^
+compiler467.c:224:77: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+             runInputFile = fileOpen (&optarg[2], "r", DEFAULT_RUN_INPUT_FILE);
+                                                                             ^
+compiler467.c:234:60: warning: ISO C++ forbids converting a string constant to 'char*' [-Wwrite-strings]
+       inputFile = fileOpen(optarg , "r", DEFAULT_INPUT_FILE);
+                                                            ^
+g++ -g -O0 -Wall   -c -o globalvars.o globalvars.c
+bison -dtvy parser.y 
+mv -f y.tab.c parser.c
+mv y.tab.h parser.tab.h
+flex  -t scanner.l > scanner.c
+g++ -g -O0 -Wall   -c -o scanner.o scanner.c
+<stdout>: In function 'int yy_get_next_buffer()':
+<stdout>:662:18: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+<stdout>:1249:3: note: in expansion of macro 'YY_INPUT'
+<stdout>: At global scope:
+<stdout>:1350:17: warning: 'void yyunput(int, char*)' defined but not used [-Wunused-function]
+g++ -g -O0 -Wall   -c -o parser.o parser.c
+g++ -g -O0 -Wall   -c -o ast.o ast.c
+g++ -g -O0 -Wall   -c -o semantic.o semantic.c
+g++ -g -O0 -Wall   -c -o symbol.o symbol.c
+g++   compiler467.o globalvars.o scanner.o parser.o ast.o semantic.o symbol.o  -lfl -o compiler467
+rm scanner.c
