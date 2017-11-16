@@ -132,6 +132,18 @@ void ast_operator_check(node* ast) {
     }
 }
 
+void ast_condition_check(node* ast) {
+    if (ast->kind == IF_STATEMENT_NODE) {
+        int type_cond = ast->if_statement.condition->type_code;
+        if (!is_in_set(scala_boolean_types, 3, type_cond)) {
+            fprintf(errorFile,
+                    "%d, condition of if statement must have boolean value as "
+                    "condition\n",
+                    ast->line);
+        }
+    }
+}
+
 void ast_declaration_check(node* ast) {
     if (ast->declaration.expr) {
         if (scope_define_symbol(ast->declaration.var_name,
