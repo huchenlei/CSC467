@@ -34,7 +34,7 @@ void scope_enter() {
     if (is_root_scope) {
         // add pre-defined vars to root scope
         scope_define_symbol("gl_FragColor", 0, VEC_T, 4);
-        scope_define_symbol("gl_FragDepth", 0, BOOL_T, 0);
+        scope_define_symbol("gl_FragDepth", 0, BOOL_T, 1);
         scope_define_symbol("gl_FragCoord", 0, VEC_T, 4);
 
         scope_define_symbol("gl_TexCoord", 0, VEC_T, 4);

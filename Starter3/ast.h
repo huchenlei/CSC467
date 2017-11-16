@@ -26,7 +26,7 @@ typedef enum {
   EXPRESSION_NODE       = (1 << 2),
   UNARY_EXPRESION_NODE  = (1 << 2) | (1 << 3),
   BINARY_EXPRESSION_NODE= (1 << 2) | (1 << 4),
-  INT_NODE              = (1 << 2) | (1 << 5), 
+  INT_NODE              = (1 << 2) | (1 << 5),
   FLOAT_NODE            = (1 << 2) | (1 << 6),
   IDENT_NODE            = (1 << 2) | (1 << 7),
   VAR_NODE              = (1 << 2) | (1 << 8),
@@ -60,7 +60,7 @@ struct node_ {
       // declarations?
       // statements?
     } scope;
-	
+
 	struct {
 	  int func_name;
 	  node *args;
@@ -92,13 +92,13 @@ struct node_ {
         float float_val;
       };
     } literal_expr;
-	
+
 	struct {
 	  char *var_name;
 	  int is_array;
 	  int index;
 	} variable;
-	
+
     struct {
       int is_const;
       char *var_name;
@@ -123,5 +123,8 @@ void ast_print(node * ast);
 void ast_pre_print(node *ast, int depth);
 void ast_post_print(node *ast, int depth);
 void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_func)(node*,int));
+
+// Utils
+const char* get_binary_op_str(int op);
 
 #endif /* AST_H_ */

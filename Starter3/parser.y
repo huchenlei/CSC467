@@ -2,9 +2,9 @@
 /***********************************************************************
  * --YOUR GROUP INFO SHOULD GO HERE--
  *  Chenlei Hu 1002030651
- * 
+ *
  *   Interface to the parser module for CSC467 course project.
- * 
+ *
  *   Phase 2: Implement context free grammar for source language, and
  *            parse tracing functionality.
  *   Phase 3: Construct the AST for the source language program.
@@ -32,8 +32,8 @@ int yylex();              /* procedure for calling lexical analyzer */
 extern int yyline;        /* variable holding current line number   */
 
 enum {
-  DP3 = 0, 
-  LIT = 1, 
+  DP3 = 0,
+  LIT = 1,
   RSQ = 2
 };
 
@@ -129,9 +129,9 @@ enum {
  *    2. Implement the trace parser option of the compiler
  ***********************************************************************/
 program
-  : scope 
+  : scope
       { yTRACE("program -> scope\n");
-		ast = $1; } 
+		ast = $1; }
   ;
 
 scope
@@ -144,22 +144,22 @@ declarations
   : declarations declaration
       { yTRACE("declarations -> declarations declaration\n");
 		$$ = ast_allocate(DECLARATIONS_NODE, yyline, $1, $2); }
-  | 
+  |
       { yTRACE("declarations -> \n");
 		$$ = NULL; }
   ;
 
 statements
   : statements statement
-      { yTRACE("statements -> statements statement\n"); 
+      { yTRACE("statements -> statements statement\n");
 		$$ = ast_allocate(STATEMENT_NODE, yyline, $1, $2);}
-  | 
+  |
       { yTRACE("statements -> \n");
 		$$ = NULL; }
   ;
 
 declaration
-  : type ID ';' 
+  : type ID ';'
       { yTRACE("declaration -> type ID ;\n");
 		$$ = ast_allocate(DECLARATION_NODE, yyline, 0, $1, $2, NULL);}
   | type ID '=' expression ';'
@@ -180,7 +180,7 @@ statement
   | IF '(' expression ')' statement %prec WITHOUT_ELSE
       { yTRACE("statement -> IF ( expression ) statement \n");
 		$$ = ast_allocate(IF_STATEMENT_NODE, yyline, $3, $5, NULL); }
-  | scope 
+  | scope
       { yTRACE("statement -> scope \n");
 		$$ = ast_allocate(NESTED_SCOPE_NODE, yyline, $1); }
   | ';'
@@ -286,7 +286,7 @@ expression
   | '(' expression ')'
       { yTRACE("expression -> ( expression ) \n");
 		$$ = ast_allocate(NESTED_EXPRESSION_NODE, yyline, $2); }
-  | variable 
+  | variable
       { yTRACE("expression -> variable \n");
 	  	$$ = ast_allocate(VAR_EXPRESSION_NODE, yyline, $1); }
   ;
@@ -334,7 +334,7 @@ void yyerror(const char* s) {
   }
 
   fprintf(errorFile, "\nPARSER ERROR, LINE %d", yyline);
-  
+
   if(strcmp(s, "parse error")) {
     if(strncmp(s, "parse error, ", 13)) {
       fprintf(errorFile, ": %s\n", s);
@@ -345,4 +345,3 @@ void yyerror(const char* s) {
     fprintf(errorFile, ": Reading token %s\n", yytname[YYTRANSLATE(yychar)]);
   }
 }
-

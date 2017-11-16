@@ -1,27 +1,100 @@
-#include "semantic.h"
 #include "ast.h"
 #include "common.h"
+#include "parser.tab.h"
+#include "semantic.h"
 
-void ast_pre_check(node *ast, int depth);
-void ast_post_check(node *ast, int depth);
+void ast_pre_check(node* ast, int depth);
+void ast_post_check(node* ast, int depth);
 
-
-int semantic_check(node *ast) {
-    
+int semantic_check(node* ast) {
     ast_visit(ast, 0, &ast_pre_check, &ast_post_check);
     return 0;
 }
 
-void ast_pre_check(node *ast, int depth){
+static const int logic_ops[3] = {OR, AND, '!'};
+static const int arithmetic_ops[6] = {'+', '-', '*', '/', '^', UMINUS};
+static const int comparison_ops[6] = {EQ, NEQ, '<', LEQ, '>', GEQ};
+static const int boolean_types[4] = {FLASE_C, TRUE_C, BOOL_T, BVEC_T};
+static const int arithmetic_types[6] = {VEC_T,  FLOAT_T, FLOAT_C,
+                                        IVEC_T, INT_T,   INT_C};
+
+int is_in_set(const int* arr, size_t len, int target) {
+    for (size_t i = 0; i < len; i++) {
+        if (arr[i] == target) {
+            return 1;  // true
+        }
+    }
+    return 0;  // false
+}
+
+void ast_operator_check(node* ast) {
     node_kind kind = ast->kind;
-    if (kind == SCOPE_NODE){
+    int op = 0;
+    node* oprands[2];
+    size_t oplen = 0;
+
+    switch (kind) {
+        case BINARY_EXPRESSION_NODE:
+            op = ast->binary_expr.op;
+            oplen = 2;
+            oprands[0] = ast->binary_expr.left;
+            oprands[1] = ast->binary_expr.right;
+            break;
+        case UNARY_EXPRESION_NODE:
+            op = ast->unary_expr.op;
+            oplen = 1;
+            oprands[0] = ast->unary_expr.right;
+            break;
+        default:
+            // Do nothing for other nodes
+            return;
+    }
+
+    if (is_in_set(logic_ops, 3, op)) {
+        // All operands to logical ops must have boolean types
+        for (size_t i = 0; i < oplen; i++) {
+            if (!is_in_set(boolean_types, 4, oprands[i]->type_code)) {
+                fprintf(errorFile,
+                        "%d: %s operator must have bool type as %d operand\n",
+                        ast->line, get_binary_op_str(op), i + 1);
+            }
+        }
+    }
+
+    if (is_in_set(arithmetic_ops, 6, op) || is_in_set(comparison_ops, 6, op)) {
+        // All operands must have arithmetic types
+        for (size_t i = 0; i < oplen; i++) {
+            if (!is_in_set(arithmetic_types, 6, oprands[i]->type_code)) {
+                fprintf(
+                    errorFile,
+                    "%d: %s operator must have arithmetic type as %d operand\n",
+                    ast->line, get_binary_op_str(op), i + 1);
+            }
+        }
+    }
+
+    if (oplen == 2) {  // binary_expr
+        // Both operands need to have same vec_size(order)
+        if (operands[0]->vec_size != operands[1]->vec_size) {
+            fprintf(errorFile, "%d: %s operator must have same vec order\n",
+                    ast->line, get_binary_op_str(op));
+        }
+    }
+
+    // TODO More specific type checks
+}
+
+void ast_pre_check(node* ast, int depth) {
+    node_kind kind = ast->kind;
+    if (kind == SCOPE_NODE) {
         scope_enter();
     }
 }
-void ast_post_check(node *ast, int depth){
+
+void ast_post_check(node* ast, int depth) {
     node_kind kind = ast->kind;
-  // dispatch to each semantic check functions
-    switch(kind) {
+    // dispatch to each semantic check functions
+    switch (kind) {
         case SCOPE_NODE:
             scope_leave();
             break;
@@ -76,5 +149,4 @@ void ast_post_check(node *ast, int depth){
         default:
             break;
     }
-  
 }
