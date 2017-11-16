@@ -15,22 +15,22 @@ static const int logic_ops[3] = {OR, AND, '!'};
 static const int arithmetic_ops[6] = {'+', '-', '*', '/', '^', UMINUS};
 static const int comparison_ops[6] = {EQ, NEQ, '<', LEQ, '>', GEQ};
 static const int boolean_types[4] = {FALSE_C, TRUE_C, BOOL_T, BVEC_T};
-static const int arithmetic_types[6] = {VEC_T,  FLOAT_T, FLOAT_C,
-                                        IVEC_T, INT_T,   INT_C};
+static const int arithmetic_types[6] = {VEC_T, FLOAT_T, FLOAT_C,
+    IVEC_T, INT_T, INT_C};
 
 int is_in_set(const int* arr, size_t len, int target) {
     for (size_t i = 0; i < len; i++) {
         if (arr[i] == target) {
-            return 1;  // true
+            return 1; // true
         }
     }
-    return 0;  // false
+    return 0; // false
 }
 
 void ast_operator_check(node* ast) {
     node_kind kind = ast->kind;
     int op = 0;
-    node* oprands[2];
+    node * oprands[2];
     size_t oplen = 0;
 
     switch (kind) {
@@ -66,14 +66,14 @@ void ast_operator_check(node* ast) {
         for (size_t i = 0; i < oplen; i++) {
             if (!is_in_set(arithmetic_types, 6, oprands[i]->type_code)) {
                 fprintf(
-                    errorFile,
-                    "%d: %s operator must have arithmetic type as %ld operand\n",
-                    ast->line, get_binary_op_str(op), i + 1);
+                        errorFile,
+                        "%d: %s operator must have arithmetic type as %ld operand\n",
+                        ast->line, get_binary_op_str(op), i + 1);
             }
         }
     }
 
-    if (oplen == 2) {  // binary_expr
+    if (oplen == 2) { // binary_expr
         // Both operands need to have same vec_size(order)
         if (oprands[0]->vec_size != oprands[1]->vec_size) {
             fprintf(errorFile, "%d: %s operator must have same vec order\n",
@@ -88,6 +88,25 @@ void ast_pre_check(node* ast, int depth) {
     node_kind kind = ast->kind;
     if (kind == SCOPE_NODE) {
         scope_enter();
+        if (scope_depth() == 0) { // Root scope predefine vars
+            // add pre-defined vars to root scope
+            scope_define_symbol("gl_FragColor", 0, VEC_T, 4);
+            scope_define_symbol("gl_FragDepth", 0, BOOL_T, 1);
+            scope_define_symbol("gl_FragCoord", 0, VEC_T, 4);
+
+            scope_define_symbol("gl_TexCoord", 0, VEC_T, 4);
+            scope_define_symbol("gl_Color", 0, VEC_T, 4);
+            scope_define_symbol("gl_Secondary", 0, VEC_T, 4);
+            scope_define_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4);
+
+            scope_define_symbol("gl_Light_Half", 1, VEC_T, 4);
+            scope_define_symbol("gl_Light_Ambient", 1, VEC_T, 4);
+            scope_define_symbol("gl_Material_Shininess", 1, VEC_T, 4);
+
+            scope_define_symbol("env1", 1, VEC_T, 4);
+            scope_define_symbol("env2", 1, VEC_T, 4);
+            scope_define_symbol("env3", 1, VEC_T, 4);
+        }
     }
 }
 
@@ -141,11 +160,11 @@ void ast_post_check(node* ast, int depth) {
         case DECLARATION_NODE:
             ast->type_code = ast->declaration.type_node->type_code;
             ast->vec_size = ast->declaration.type_node->vec_size;
-            if (ast->declaration.expr){
+            if (ast->declaration.expr) {
                 if (scope_declare_symbol(ast->declaration.var_name,
                         ast->declaration.is_const,
                         ast->type_code,
-                        ast->vec_size)){
+                        ast->vec_size)) {
                     errorOccurred = 1;
                     fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n", ast->line);
                 }

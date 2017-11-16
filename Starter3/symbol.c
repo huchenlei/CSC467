@@ -14,12 +14,12 @@ void scope_enter() {
     int is_root_scope = (cur_scope == NULL);
     if (is_root_scope) {
         // Initialize root scope
-        cur_scope = (symbol_table*)malloc(sizeof(symbol_table));
+        cur_scope = (symbol_table*) malloc(sizeof (symbol_table));
         cur_scope->depth = 0;
         cur_scope->parent_scope = NULL;
     } else {
         // Enter a new scope
-        symbol_table* new_st = (symbol_table*)malloc(sizeof(symbol_table));
+        symbol_table* new_st = (symbol_table*) malloc(sizeof (symbol_table));
         new_st->parent_scope = cur_scope;
         new_st->depth = cur_scope->depth + 1;
         cur_scope = new_st;
@@ -27,28 +27,8 @@ void scope_enter() {
 
     cur_scope->max_entry = BASE_ENTRY_NUM;
     cur_scope->entry_num = 0;
-    cur_scope->head = (st_entry*)malloc(BASE_ST_SIZE);
-    cur_scope->tail = cur_scope->head;
-
-//    if (is_root_scope) {
-//        // add pre-defined vars to root scope
-//        scope_define_symbol("gl_FragColor", 0, VEC_T, 4);
-//        scope_define_symbol("gl_FragDepth", 0, BOOL_T, 1);
-//        scope_define_symbol("gl_FragCoord", 0, VEC_T, 4);
-//
-//        scope_define_symbol("gl_TexCoord", 0, VEC_T, 4);
-//        scope_define_symbol("gl_Color", 0, VEC_T, 4);
-//        scope_define_symbol("gl_Secondary", 0, VEC_T, 4);
-//        scope_define_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4);
-//
-//        scope_define_symbol("gl_Light_Half", 1, VEC_T, 4);
-//        scope_define_symbol("gl_Light_Ambient", 1, VEC_T, 4);
-//        scope_define_symbol("gl_Material_Shininess", 1, VEC_T, 4);
-//
-//        scope_define_symbol("env1", 1, VEC_T, 4);
-//        scope_define_symbol("env2", 1, VEC_T, 4);
-//        scope_define_symbol("env3", 1, VEC_T, 4);
-//    }
+    cur_scope->head = NULL;
+    cur_scope->tail = NULL;
 }
 
 void scope_leave() {
@@ -62,13 +42,16 @@ void scope_leave() {
     // Destroy all entries
     size_t sanity_count = 0;
     st_entry* cur_node = st_des->head;
-    while (cur_node->_next != NULL) {
-        cur_node = cur_node->_next;
+    while (cur_node != NULL) {
         if (cur_node->_is_pivot) {
             free(cur_node);
         }
         sanity_count++;
+        cur_node = cur_node->_next;
     }
+#ifdef DEBUG
+    printf("scope_leave: sanity count %d, entry num %d\n", sanity_count, st_des->entry_num);
+#endif
     assert(sanity_count == st_des->entry_num);
     assert(st_des->max_entry % BASE_ENTRY_NUM == 0);
     assert(st_des->max_entry >= st_des->entry_num);
@@ -86,25 +69,31 @@ size_t scope_depth() {
 st_entry* scope_new_entry() {
     st_entry* prev = cur_scope->tail;
     st_entry* new_st = NULL;
-    if (cur_scope->entry_num >= cur_scope->max_entry) {
+    if (cur_scope->head == NULL) {
+        // First call
+        new_st = (st_entry*) malloc(BASE_ST_SIZE);
+        new_st->_is_pivot = 1;
+        cur_scope->head = new_st;
+    } else if (cur_scope->entry_num >= cur_scope->max_entry) {
         // reach max entry num current mem can support
-        new_st = (st_entry*)malloc(sizeof(st_entry) * cur_scope->max_entry);
+        new_st = (st_entry*) malloc(sizeof (st_entry) * cur_scope->max_entry);
         cur_scope->max_entry *= 2;
         new_st->_is_pivot = 1;
     } else {
         // move stack pointer
-        new_st = prev + sizeof(st_entry);
+        new_st = prev + sizeof (st_entry);
         new_st->_is_pivot = 0;
     }
-    if (cur_scope->entry_num == 0) {
-        new_st->_is_pivot = 1;
-    }
+    
     cur_scope->entry_num++;
+    cur_scope->tail = new_st;
+    if (prev != NULL)
+        prev->_next = new_st;
     return new_st;
 }
 
 int scope_declare_symbol(const char* name, int is_const, int type_code,
-                         int vec_size) {
+        int vec_size) {
     assert(cur_scope != NULL);
     assert(name != NULL);
     assert(vec_size >= 0 && vec_size <= 4);
@@ -120,10 +109,16 @@ int scope_declare_symbol(const char* name, int is_const, int type_code,
     new_st->type_code = type_code;
     new_st->vec_size = vec_size;
     strncpy(new_st->var_name, name, MAX_NAME_LEN);
+
+    new_st->_next = NULL;
+    new_st->_owner = cur_scope;
+
     return 0;
 }
 
-void set_inited(st_entry* ste) { ste->has_init = 1; }
+void set_inited(st_entry* ste) {
+    ste->has_init = 1;
+}
 
 st_entry* scope_find_entry(const char* name) {
     assert(name != NULL);
@@ -155,11 +150,12 @@ st_entry* scope_find_local_entry(const char* name) {
 }
 
 int scope_define_symbol(const char* name, int is_const, int type_code,
-                        int vec_size) {
+        int vec_size) {
     int err = scope_declare_symbol(name, is_const, type_code, vec_size);
     if (err) return err;
     st_entry* ste = scope_find_entry(name);
+    assert(ste != NULL);
     ste->has_init = 1;
-    
+
     return 0;
 }
