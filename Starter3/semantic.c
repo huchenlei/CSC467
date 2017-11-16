@@ -1,8 +1,8 @@
+#include <assert.h>
 #include "ast.h"
 #include "common.h"
 #include "parser.tab.h"
 #include "semantic.h"
-#include <assert.h>
 
 void ast_pre_check(node* ast, int depth);
 void ast_post_check(node* ast, int depth);
@@ -55,6 +55,25 @@ void ast_operator_check(node* ast) {
             return;
     }
 
+    // operands with invalid types generally is rejected
+    for (size_t i = 0; i < oplen; i++) {
+        if (operands[i]->type_code == -1 || operands[i]->vec_size == 0) {
+            fprintf(errorFile, "%d: type error due to previous errors\n",
+                    ast->line);
+            goto ast_operator_check_error;
+        }
+    }
+
+    // if nothing is wrong sv, vs, vv, ss will all yeild result type with the
+    // operands with highest order
+    if (oplen == 1 || operands[0]->vec_size > operands[1]->vec_size) {
+        ast->vec_size = operands[0]->vec_size;
+        ast->type_code = operands[0]->type_code;
+    } else {
+        ast->vec_size = operands[1]->vec_size;
+        ast->type_code = operands[1]->type_code;
+    }
+
     if (is_in_set(logic_ops, 3, op)) {
         // All operands to logical ops must have boolean types
         for (size_t i = 0; i < oplen; i++) {
@@ -62,6 +81,7 @@ void ast_operator_check(node* ast) {
                 fprintf(errorFile,
                         "%d: %s operator must have bool type as %ld operand\n",
                         ast->line, get_binary_op_str(op), i + 1);
+                goto ast_operator_check_error;
             }
         }
         if (oplen == 2) {
@@ -70,11 +90,11 @@ void ast_operator_check(node* ast) {
             if (oprands[0]->vec_size != oprands[1]->vec_size) {
                 fprintf(errorFile, "%d: %s operator must have same vec order\n",
                         ast->line, get_binary_op_str(op));
+                goto ast_operator_check_error;
             }
         }
-    }
-
-    if (is_in_set(arithmetic_ops, 6, op) || is_in_set(comparison_ops, 6, op)) {
+    } else if (is_in_set(arithmetic_ops, 6, op) ||
+               is_in_set(comparison_ops, 6, op)) {
         // All operands must have arithmetic types
         for (size_t i = 0; i < oplen; i++) {
             if (!is_in_set(arithmetic_types, 6, oprands[i]->type_code)) {
@@ -82,6 +102,7 @@ void ast_operator_check(node* ast) {
                         "%d: %s operator must have arithmetic type as %ld "
                         "operand\n",
                         ast->line, get_binary_op_str(op), i + 1);
+                goto ast_operator_check_error;
             }
         }
         switch (op) {
@@ -94,6 +115,7 @@ void ast_operator_check(node* ast) {
                             "%d: * operator must have vector of same order as "
                             "operands\n",
                             ast->line);
+                    goto ast_operator_check_error;
                 }
                 break;
             case '/':
@@ -104,12 +126,12 @@ void ast_operator_check(node* ast) {
             case '>':
                 // ss
                 assert(oplen == 2);
-                if (!(oprands[0]->vec_size == 1 &&
-                      oprands[1]->vec_size == 1)) {
+                if (!(oprands[0]->vec_size == 1 && oprands[1]->vec_size == 1)) {
                     fprintf(errorFile,
                             "%d: %s operator must have both operands scala "
                             "arithmetic value\n",
                             ast->line, get_binary_op_str(op));
+                    goto ast_operator_check_error;
                 }
                 break;
             case '+':
@@ -123,28 +145,44 @@ void ast_operator_check(node* ast) {
                         errorFile,
                         "%d: %s operator must have vec size of same order\n",
                         ast->line, get_binary_op_str(op));
+                    goto ast_operator_check_error;
                 }
                 break;
             default:
                 // Do nothing
                 break;
         }
+    } else {
+        // Operator not in recognized
+        fprintf(errorFile,
+                "%d: [SEVERE](This is an internal issue and should never "
+                "happen) operator not recognized\n");
     }
+ast_operator_check_error:
+    ast->type_code = -1;
+    ast->vec_size = 0;
 }
 
 void ast_condition_check(node* ast) {
-    if (ast->kind == IF_STATEMENT_NODE) {
-        int type_cond = ast->if_statement.condition->type_code;
-        if (!is_in_set(scala_boolean_types, 3, type_cond)) {
-            fprintf(errorFile,
-                    "%d, condition of if statement must have boolean value as "
-                    "condition\n",
-                    ast->line);
-        }
+    if (ast->kind != IF_STATEMENT_NODE) return;
+    int type_cond = ast->if_statement.condition->type_code;
+    if (!is_in_set(scala_boolean_types, 3, type_cond)) {
+        fprintf(errorFile,
+                "%d, condition of if statement must have boolean value as "
+                "condition\n",
+                ast->line);
     }
 }
 
-void ast_declaration_check(node* ast) {
+void ast_function_check(node* ast) {
+    // TODO
+}
+
+void ast_constructor_check(node* ast) {
+    if (ast->kind != CONSTRUCTOR_NODE) return;
+}
+
+void ast_ void ast_declaration_check(node* ast) {
     if (ast->declaration.expr) {
         if (scope_define_symbol(ast->declaration.var_name,
                                 ast->declaration.is_const, ast->type_code,
