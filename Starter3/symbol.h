@@ -61,7 +61,7 @@ int scope_declare_symbol(const char* name, int is_const, int type_code,
 int scope_define_symbol(const char* name, int is_const, int type_code,
                         int vec_size);
 // set the has_init field to true
-int set_inited(st_entry* ste);
+void set_inited(st_entry* ste);
 // Find entry globally
 st_entry* scope_find_entry(const char* name);
 // Find entry in current scope

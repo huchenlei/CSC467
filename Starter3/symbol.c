@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.tab.h"
 #include "symbol.h"
 
 symbol_table* cur_scope = NULL;
@@ -15,12 +14,12 @@ void scope_enter() {
     int is_root_scope = (cur_scope == NULL);
     if (is_root_scope) {
         // Initialize root scope
-        cur_scope = malloc(sizeof(symbol_table));
+        cur_scope = (symbol_table*)malloc(sizeof(symbol_table));
         cur_scope->depth = 0;
         cur_scope->parent_scope = NULL;
     } else {
         // Enter a new scope
-        symbol_table* new_st = malloc(sizeof(symbol_table));
+        symbol_table* new_st = (symbol_table*)malloc(sizeof(symbol_table));
         new_st->parent_scope = cur_scope;
         new_st->depth = cur_scope->depth + 1;
         cur_scope = new_st;
@@ -28,28 +27,28 @@ void scope_enter() {
 
     cur_scope->max_entry = BASE_ENTRY_NUM;
     cur_scope->entry_num = 0;
-    cur_scope->head = malloc(BASE_ST_SIZE);
+    cur_scope->head = (st_entry*)malloc(BASE_ST_SIZE);
     cur_scope->tail = cur_scope->head;
 
-    if (is_root_scope) {
-        // add pre-defined vars to root scope
-        scope_define_symbol("gl_FragColor", 0, VEC_T, 4);
-        scope_define_symbol("gl_FragDepth", 0, BOOL_T, 1);
-        scope_define_symbol("gl_FragCoord", 0, VEC_T, 4);
-
-        scope_define_symbol("gl_TexCoord", 0, VEC_T, 4);
-        scope_define_symbol("gl_Color", 0, VEC_T, 4);
-        scope_define_symbol("gl_Secondary", 0, VEC_T, 4);
-        scope_define_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4);
-
-        scope_define_symbol("gl_Light_Half", 1, VEC_T, 4);
-        scope_define_symbol("gl_Light_Ambient", 1, VEC_T, 4);
-        scope_define_symbol("gl_Material_Shininess", 1, VEC_T, 4);
-
-        scope_define_symbol("env1", 1, VEC_T, 4);
-        scope_define_symbol("env2", 1, VEC_T, 4);
-        scope_define_symbol("env3", 1, VEC_T, 4);
-    }
+//    if (is_root_scope) {
+//        // add pre-defined vars to root scope
+//        scope_define_symbol("gl_FragColor", 0, VEC_T, 4);
+//        scope_define_symbol("gl_FragDepth", 0, BOOL_T, 1);
+//        scope_define_symbol("gl_FragCoord", 0, VEC_T, 4);
+//
+//        scope_define_symbol("gl_TexCoord", 0, VEC_T, 4);
+//        scope_define_symbol("gl_Color", 0, VEC_T, 4);
+//        scope_define_symbol("gl_Secondary", 0, VEC_T, 4);
+//        scope_define_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4);
+//
+//        scope_define_symbol("gl_Light_Half", 1, VEC_T, 4);
+//        scope_define_symbol("gl_Light_Ambient", 1, VEC_T, 4);
+//        scope_define_symbol("gl_Material_Shininess", 1, VEC_T, 4);
+//
+//        scope_define_symbol("env1", 1, VEC_T, 4);
+//        scope_define_symbol("env2", 1, VEC_T, 4);
+//        scope_define_symbol("env3", 1, VEC_T, 4);
+//    }
 }
 
 void scope_leave() {
@@ -89,7 +88,7 @@ st_entry* scope_new_entry() {
     st_entry* new_st = NULL;
     if (cur_scope->entry_num >= cur_scope->max_entry) {
         // reach max entry num current mem can support
-        new_st = malloc(sizeof(st_entry) * cur_scope->max_entry);
+        new_st = (st_entry*)malloc(sizeof(st_entry) * cur_scope->max_entry);
         cur_scope->max_entry *= 2;
         new_st->_is_pivot = 1;
     } else {
@@ -161,4 +160,6 @@ int scope_define_symbol(const char* name, int is_const, int type_code,
     if (err) return err;
     st_entry* ste = scope_find_entry(name);
     ste->has_init = 1;
+    
+    return 0;
 }

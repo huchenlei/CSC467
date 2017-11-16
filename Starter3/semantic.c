@@ -14,7 +14,7 @@ int semantic_check(node* ast) {
 static const int logic_ops[3] = {OR, AND, '!'};
 static const int arithmetic_ops[6] = {'+', '-', '*', '/', '^', UMINUS};
 static const int comparison_ops[6] = {EQ, NEQ, '<', LEQ, '>', GEQ};
-static const int boolean_types[4] = {FLASE_C, TRUE_C, BOOL_T, BVEC_T};
+static const int boolean_types[4] = {FALSE_C, TRUE_C, BOOL_T, BVEC_T};
 static const int arithmetic_types[6] = {VEC_T,  FLOAT_T, FLOAT_C,
                                         IVEC_T, INT_T,   INT_C};
 
@@ -55,7 +55,7 @@ void ast_operator_check(node* ast) {
         for (size_t i = 0; i < oplen; i++) {
             if (!is_in_set(boolean_types, 4, oprands[i]->type_code)) {
                 fprintf(errorFile,
-                        "%d: %s operator must have bool type as %d operand\n",
+                        "%d: %s operator must have bool type as %ld operand\n",
                         ast->line, get_binary_op_str(op), i + 1);
             }
         }
@@ -67,7 +67,7 @@ void ast_operator_check(node* ast) {
             if (!is_in_set(arithmetic_types, 6, oprands[i]->type_code)) {
                 fprintf(
                     errorFile,
-                    "%d: %s operator must have arithmetic type as %d operand\n",
+                    "%d: %s operator must have arithmetic type as %ld operand\n",
                     ast->line, get_binary_op_str(op), i + 1);
             }
         }
@@ -75,7 +75,7 @@ void ast_operator_check(node* ast) {
 
     if (oplen == 2) {  // binary_expr
         // Both operands need to have same vec_size(order)
-        if (operands[0]->vec_size != operands[1]->vec_size) {
+        if (oprands[0]->vec_size != oprands[1]->vec_size) {
             fprintf(errorFile, "%d: %s operator must have same vec order\n",
                     ast->line, get_binary_op_str(op));
         }
@@ -141,6 +141,15 @@ void ast_post_check(node* ast, int depth) {
         case DECLARATION_NODE:
             ast->type_code = ast->declaration.type_node->type_code;
             ast->vec_size = ast->declaration.type_node->vec_size;
+            if (ast->declaration.expr){
+                if (scope_declare_symbol(ast->declaration.var_name,
+                        ast->declaration.is_const,
+                        ast->type_code,
+                        ast->vec_size)){
+                    errorOccurred = 1;
+                    fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n", ast->line);
+                }
+            }
             break;
         case DECLARATIONS_NODE:
             break;
