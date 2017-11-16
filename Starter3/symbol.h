@@ -18,20 +18,24 @@ struct _st {
   size_t entry_num;
   size_t max_entry;
   struct _st* parent_scope;
-  struct _st_entry* stack_base;
-  struct _st_entry* stack;
+  struct _st_entry* head;
+  struct _st_entry* tail; // tail always points to the last element in linked list
 };
 
 struct _st_entry {
+  // Public:
   int is_const;
   int has_init;
   int type_code;
   int vec_size;
   char var_name[32];
+  // Private:
+  struct _st_entry* _next;
+  struct _st* _owner;
 };
 
-typedef _st_entry st_entry;
-typedef _st symbol_table;
+typedef struct _st_entry st_entry;
+typedef struct _st symbol_table;
 
 /**
    Methods of symbol table
@@ -47,7 +51,8 @@ void scope_enter();
 void scope_leave();
 size_t scope_depth();
 int scope_declare_symbol(const char* name, int is_const, int type_code, int vec_size);
-void set_inited(); // set the has_init field to true
-const st_entry* scope_find_entry(const char* id);
+int scope_define_symbol(const char* name, int is_const, int type_code, int vec_size);
+void set_inited(st_entry* ste); // set the has_init field to true
+st_entry* scope_find_entry(const char* name);
 
 #endif
