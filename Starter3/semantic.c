@@ -84,6 +84,26 @@ void ast_operator_check(node* ast) {
     // TODO More specific type checks
 }
 
+void ast_declaration_check(node *ast) {
+    if (ast->declaration.expr) {
+        if (scope_define_symbol(ast->declaration.var_name,
+                ast->declaration.is_const,
+                ast->type_code,
+                ast->vec_size)) {
+            errorOccurred = 1;
+            fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n", ast->line);
+        }
+    } else {
+        if (scope_declare_symbol(ast->declaration.var_name,
+                ast->declaration.is_const,
+                ast->type_code,
+                ast->vec_size)) {
+            errorOccurred = 1;
+            fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n", ast->line);
+        }
+    }
+}
+
 void ast_pre_check(node* ast, int depth) {
     node_kind kind = ast->kind;
     if (kind == SCOPE_NODE) {
@@ -144,8 +164,12 @@ void ast_post_check(node* ast, int depth) {
         case ARGUMENTS_NODE:
             break;
         case NESTED_EXPRESSION_NODE:
+            ast->type_code = ast->unary_node.right->type_code;
+            ast->vec_size = ast->unary_node.right->vec_size;
             break;
         case VAR_EXPRESSION_NODE:
+            ast->type_code = ast->unary_node.right->type_code;
+            ast->vec_size = ast->unary_node.right->vec_size;
             break;
         case STATEMENT_NODE:
             break;
@@ -160,15 +184,7 @@ void ast_post_check(node* ast, int depth) {
         case DECLARATION_NODE:
             ast->type_code = ast->declaration.type_node->type_code;
             ast->vec_size = ast->declaration.type_node->vec_size;
-            if (ast->declaration.expr) {
-                if (scope_declare_symbol(ast->declaration.var_name,
-                        ast->declaration.is_const,
-                        ast->type_code,
-                        ast->vec_size)) {
-                    errorOccurred = 1;
-                    fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n", ast->line);
-                }
-            }
+            //ast_declaration_check(ast);
             break;
         case DECLARATIONS_NODE:
             break;
