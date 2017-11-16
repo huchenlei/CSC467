@@ -69,9 +69,10 @@ void scope_leave() {
         }
         sanity_count++;
     }
-    assert(sanity_count == st_des->entry_num);
-    assert(st_des->max_entry % BASE_ENTRY_NUM == 0);
-    assert(st_des->max_entry >= st_des->entry_num);
+    
+//    assert(sanity_count == st_des->entry_num);
+//    assert(st_des->max_entry % BASE_ENTRY_NUM == 0);
+//    assert(st_des->max_entry >= st_des->entry_num);
 
     free(st_des);
 }
