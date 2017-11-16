@@ -7,6 +7,9 @@
    Singleton Object Symbol Table
  */
 
+// Max length of identifier
+#define MAX_NAME_LEN 32
+
 #define BASE_ENTRY_NUM 256
 // how many entry space assigned initially for each st
 #define BASE_ST_SIZE BASE_ENTRY_NUM * sizeof(struct _st_entry)
@@ -29,10 +32,12 @@ struct _st_entry {
     int has_init;
     int type_code;
     int vec_size;
-    char var_name[32];
+    char var_name[MAX_NAME_LEN];
     // Private:
     struct _st_entry* _next;
     struct _st* _owner;
+    int _is_pivot;  // whether the entry's address need to be freed as a
+                    // holistic body
 };
 
 typedef struct _st_entry st_entry;
@@ -55,7 +60,11 @@ int scope_declare_symbol(const char* name, int is_const, int type_code,
                          int vec_size);
 int scope_define_symbol(const char* name, int is_const, int type_code,
                         int vec_size);
-void set_inited(st_entry* ste);  // set the has_init field to true
+// set the has_init field to true
+int set_inited(st_entry* ste);
+// Find entry globally
 st_entry* scope_find_entry(const char* name);
+// Find entry in current scope
+st_entry* scope_find_local_entry(const char* name);
 
 #endif
