@@ -2,6 +2,7 @@
 #include "common.h"
 #include "parser.tab.h"
 #include "semantic.h"
+#include <assert.h>
 
 void ast_pre_check(node* ast, int depth);
 void ast_post_check(node* ast, int depth);
@@ -87,8 +88,8 @@ void ast_operator_check(node* ast) {
             case '*':
                 // ss sv vv vs
                 assert(oplen == 2);
-                if ((operands[0]->vec_size > 1 && operands[1]->vec_size > 1) &&
-                    (operands[0]->vec_size != operands[1]->vec_size)) {
+                if ((oprands[0]->vec_size > 1 && oprands[1]->vec_size > 1) &&
+                    (oprands[0]->vec_size != oprands[1]->vec_size)) {
                     fprintf(errorFile,
                             "%d: * operator must have vector of same order as "
                             "operands\n",
@@ -103,8 +104,8 @@ void ast_operator_check(node* ast) {
             case '>':
                 // ss
                 assert(oplen == 2);
-                if (!(operands[0]->vec_size == 1 &&
-                      operands[1]->vec_size == 1)) {
+                if (!(oprands[0]->vec_size == 1 &&
+                      oprands[1]->vec_size == 1)) {
                     fprintf(errorFile,
                             "%d: %s operator must have both operands scala "
                             "arithmetic value\n",
@@ -117,7 +118,7 @@ void ast_operator_check(node* ast) {
             case NEQ:
                 // ss vv
                 assert(oplen == 2);
-                if (!(operands[0]->vec_size == operands[1]->vec_size)) {
+                if (!(oprands[0]->vec_size == oprands[1]->vec_size)) {
                     fprintf(
                         errorFile,
                         "%d: %s operator must have vec size of same order\n",
@@ -231,7 +232,7 @@ void ast_post_check(node* ast, int depth) {
         case DECLARATION_NODE:
             ast->type_code = ast->declaration.type_node->type_code;
             ast->vec_size = ast->declaration.type_node->vec_size;
-            // ast_declaration_check(ast);
+            ast_declaration_check(ast);
             break;
         case DECLARATIONS_NODE:
             break;

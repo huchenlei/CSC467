@@ -50,7 +50,7 @@ void scope_leave() {
         cur_node = cur_node->_next;
     }
 #ifdef DEBUG
-    printf("scope_leave: sanity count %d, entry num %d\n", sanity_count, st_des->entry_num);
+    printf("scope_leave: sanity count %ld, entry num %ld\n", sanity_count, st_des->entry_num);
 #endif
     assert(sanity_count == st_des->entry_num);
     assert(st_des->max_entry % BASE_ENTRY_NUM == 0);
