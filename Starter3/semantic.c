@@ -386,8 +386,8 @@ void ast_assignment_check(node* ast) {
     }
     set_inited(ste);
     // Default case assignment will not return a typed node
-    ast->type_code = -1;
-    ast->vec_size = 0;
+    ast->type_code = dest->type_code;
+    ast->vec_size = dest->vec_size;
     return;
 ast_assignment_check_error:
     ast->type_code = -1;
