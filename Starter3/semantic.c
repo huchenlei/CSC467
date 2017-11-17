@@ -190,6 +190,10 @@ void ast_constructor_check(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
 }
 
+void ast_argument_check(node* ast) {
+    
+}
+
 void ast_assignment_check(node* ast) {
     if (ast->kind != ASSIGNMENT_NODE) return;
 

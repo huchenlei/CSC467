@@ -41,7 +41,6 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 
   // expression
   case CONSTRUCTOR_NODE:
-  case ARGUMENTS_NODE:
   case SCOPE_NODE:
   case DECLARATIONS_NODE:
   case STATEMENT_NODE:
@@ -49,7 +48,11 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 	ast->binary_node.left = va_arg(args, node *);
 	ast->binary_node.right = va_arg(args, node *); 
 	break;
-  
+  case ARGUMENTS_NODE:
+        ast->argument.arguments = va_arg(args, node *);
+        ast->argument.expr = va_arg(args, node *);
+        ast->argument.arg_size = 0;
+        break;
   case IF_STATEMENT_NODE:
 	ast->if_statement.condition = va_arg(args, node *);
 	ast->if_statement.inside_if = va_arg(args, node *);
@@ -346,6 +349,9 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 	
 	switch(ast->kind){
   		case ARGUMENTS_NODE:
+                    ast_visit(ast->argument.arguments, depth+1, pre_func, post_func);
+                    ast_visit(ast->argument.expr, depth+1, pre_func, post_func);
+                    break;
   		case SCOPE_NODE:
   		case DECLARATIONS_NODE:
   		case STATEMENT_NODE:
