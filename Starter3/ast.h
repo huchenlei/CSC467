@@ -55,6 +55,7 @@ struct node_ {
   int line;
   int type_code;
   int vec_size;
+  int is_const;
   union {
     struct {
       // declarations?
@@ -100,7 +101,6 @@ struct node_ {
 	} variable;
 
     struct {
-      int is_const;
       char *var_name;
       node *type_node;
       node *expr;

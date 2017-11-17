@@ -185,15 +185,25 @@ void ast_constructor_check(node* ast) {
 void ast_declaration_check(node* ast) {
     if (ast->declaration.expr) {
         if (scope_define_symbol(ast->declaration.var_name,
-                                ast->declaration.is_const, ast->type_code,
+                                ast->is_const, ast->type_code,
                                 ast->vec_size)) {
             errorOccurred = 1;
-            fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n",
+            fprintf(errorFile, "LINE: %d: VariableCan not be declared twice\n",
                     ast->line);
+            if (ast->is_const){
+                
+            }
+            if (ast->declaration.expr->type_code != ast->type_code 
+                    || ast->declaration.expr->vec_size != ast->vec_size){
+                errorOccurred = 1;
+                fprintf(errorFile, "LINE: %d: expression should have the same"
+                        "type as the declarated variable\n",
+                    ast->line);
+            }
         }
     } else {
         if (scope_declare_symbol(ast->declaration.var_name,
-                                 ast->declaration.is_const, ast->type_code,
+                                 ast->is_const, ast->type_code,
                                  ast->vec_size)) {
             errorOccurred = 1;
             fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n",
