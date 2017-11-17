@@ -422,6 +422,9 @@ void ast_post_check(node* ast, int depth) {
     ast_condition_check(ast);
     ast_assignment_check(ast);
     ast_declaration_check(ast);
+    ast_function_check(ast);
+    ast_argument_check(ast);
+    ast_constructor_check(ast);
     node_kind kind = ast->kind;
     // dispatch to each semantic check functions
     switch (kind) {
