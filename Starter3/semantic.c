@@ -179,15 +179,129 @@ void ast_condition_check(node* ast) {
 }
 
 void ast_function_check(node* ast) {
-    // TODO
+    if (ast->kind != FUNCTION_NODE) return;
+    node *argument_node = ast->func_expr.args;
+    switch(ast->func_expr.func_name){
+        case 0://dp3
+            if (argument_node->argument.arg_size != 2){
+                errorOccurred = 1;
+                fprintf(errorFile, "LINE: %d, dp3 take exactly two arguments!",
+                        ast->line);
+            }
+            if ((argument_node->type_code != IVEC_T && 
+                    argument_node->type_code != VEC_T) || 
+                    (argument_node->vec_size != 3 && 
+                    argument_node->vec_size != 4)){
+                errorOccurred = 1;
+                fprintf(errorFile, "LINE: %d, dp3 only takes vec3(4) ivec3(4)"
+                        "as arguments",
+                        ast->line);
+            }
+            if (argument_node->type_code == VEC_T){
+                ast->type_code = FLOAT_T;
+                ast->vec_size = 1;
+            }
+            if (argument_node->type_code == IVEC_T){
+                ast->type_code = INT_T;
+                ast->vec_size = 1;
+            }
+            
+            break;
+        case 1://lit
+            if (argument_node->argument.arg_size != 1){
+                errorOccurred = 1;
+                fprintf(errorFile, "LINE: %d, lit only one argument!",
+                        ast->line);
+            }
+            if (argument_node->type_code != VEC_T || 
+                    argument_node->vec_size != 4){
+                errorOccurred = 1;
+                fprintf(errorFile, "LINE: %d, lit only take vec4 as argument!",
+                        ast->line);
+            }
+            ast->type_code = VEC_T;
+            ast->vec_size = 4;
+            break;
+        case 2://rsq
+            if (argument_node->argument.arg_size != 1){
+                errorOccurred = 1;
+                fprintf(errorFile, "LINE: %d, rsq only one argument!",
+                        ast->line);
+            }
+            if (argument_node->type_code != FLOAT_T && 
+                    argument_node->type_code != INT_T){
+                errorOccurred = 1;
+                fprintf(errorFile, "LINE: %d, rsq only take float or "
+                        "int as argument!",
+                        ast->line);
+            }
+            if (argument_node->type_code == FLOAT_T){
+                ast->type_code = FLOAT_T;
+                ast->vec_size = 1;
+            }
+            if (argument_node->type_code == INT_T){
+                ast->type_code = INT_T;
+                ast->vec_size = 1;
+            }
+            break;
+        default: break;
+    }
 }
 
 void ast_constructor_check(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
+    node *type_node = ast->binary_node.left;
+    node *argument_node = ast->binary_node.right;
+    ast->type_code = type_node->type_code;
+    ast->vec_size = type_node->vec_size;
+    if (ast->type_code != argument_node->type_code){
+        errorOccurred = 1;
+        fprintf(errorFile,
+                "LINE: %d, arguments type in construction call "
+                "is not consistent\n", ast->line);
+    }
+    if (argument_node->vec_size != 1){
+        errorOccurred = 1;
+        fprintf(errorFile, "LINE: %d, arguments in construction call should "
+                "have demansion 1", ast->line);
+    }
+    if (ast->vec_size != argument_node->argument.arg_size){
+        errorOccurred = 1;
+        fprintf(errorFile, "LINE: %d, number of arguments in construction call"
+                "is not consistent", ast->line);
+    }
+    
+    
 }
 
 void ast_argument_check(node* ast) {
-    
+     if (ast->kind != ARGUMENTS_NODE) return;
+     node *args_node = ast->argument.arguments;
+     node *expr_node = ast->argument.expr;
+     if (!expr_node){//arguments_opt -> arguments
+         assert(args_node);
+         ast->type_code = args_node->type_code;
+         ast->vec_size = args_node->vec_size;
+         ast->argument.arg_size = args_node->argument.arg_size;
+     }
+     else if (!args_node){//arguments -> expression 
+         assert(expr_node);
+         ast->type_code = expr_node->type_code;
+         ast->vec_size = expr_node->vec_size;
+         ast->argument.arg_size = 1;
+     }
+     else{//arguments -> arguments , expression
+         if (args_node->type_code != expr_node->type_code || 
+                 args_node->vec_size != expr_node->vec_size){
+             errorOccurred = 1;
+             fprintf(errorFile, "LINE: %d, arguments should have same type",
+                     ast->line);
+         }
+         ast->type_code = args_node->type_code;
+         ast->vec_size = args_node->vec_size;
+         ast->argument.arg_size = args_node->argument.arg_size + 1;
+                 
+     }
 }
 
 void ast_assignment_check(node* ast) {
@@ -304,14 +418,13 @@ void ast_post_check(node* ast, int depth) {
         case FUNCTION_NODE:
             break;
         case CONSTRUCTOR_NODE:
-            ast->type_code = ast->binary_node.left->type_code;
-            ast->vec_size = ast->binary_node.left->vec_size;
             break;
         case TYPE_NODE:
             break;
         case BOOL_NODE:
             break;
         case ARGUMENTS_NODE:
+            ast_argument_check(ast);
             break;
         case NESTED_EXPRESSION_NODE:
             ast->type_code = ast->unary_node.right->type_code;
