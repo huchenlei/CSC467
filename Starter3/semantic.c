@@ -22,6 +22,7 @@ static const int arithmetic_types[6] = {VEC_T,  FLOAT_T, FLOAT_C,
                                         IVEC_T, INT_T,   INT_C};
 static const int scala_arithmetic_types[4] = {FLOAT_T, FLOAT_C, INT_T, INT_C};
 static const int vec_arithmetic_types[2] = {VEC_T, IVEC_T};
+static const int literal_node[4] = {TRUE_C, FALSE_C, INT_C, FLOAT_C};
 
 int is_in_set(const int* arr, size_t len, int target) {
     for (size_t i = 0; i < len; i++) {
@@ -262,7 +263,7 @@ void ast_constructor_check(node* ast) {
         errorOccurred = 1;
         fprintf(errorFile,
                 "LINE: %d, arguments type in construction call "
-                "is not consistent\n", ast->line);
+                "is not consistent \n", ast->line);
     }
     if (argument_node->vec_size != 1){
         errorOccurred = 1;
@@ -271,11 +272,18 @@ void ast_constructor_check(node* ast) {
     }
     if (ast->vec_size != argument_node->argument.arg_size){
         errorOccurred = 1;
+        
         fprintf(errorFile, "LINE: %d, number of arguments in construction call"
                 "is not consistent", ast->line);
+    } 
+}
+
+void ast_simple_expr_eval(node* ast){
+    if (ast->kind == NESTED_EXPRESSION_NODE || 
+            ast->kind == VAR_EXPRESSION_NODE){
+        ast->type_code = ast->unary_node.right->type_code;
+        ast->vec_size = ast->unary_node.right->vec_size;
     }
-    
-    
 }
 
 void ast_argument_check(node* ast) {
@@ -425,6 +433,7 @@ void ast_post_check(node* ast, int depth) {
     ast_function_check(ast);
     ast_argument_check(ast);
     ast_constructor_check(ast);
+    ast_simple_expr_eval(ast);
     node_kind kind = ast->kind;
     // dispatch to each semantic check functions
     switch (kind) {
@@ -454,15 +463,10 @@ void ast_post_check(node* ast, int depth) {
         case BOOL_NODE:
             break;
         case ARGUMENTS_NODE:
-            ast_argument_check(ast);
             break;
         case NESTED_EXPRESSION_NODE:
-            ast->type_code = ast->unary_node.right->type_code;
-            ast->vec_size = ast->unary_node.right->vec_size;
             break;
         case VAR_EXPRESSION_NODE:
-            ast->type_code = ast->unary_node.right->type_code;
-            ast->vec_size = ast->unary_node.right->vec_size;
             break;
         case STATEMENT_NODE:
             break;
