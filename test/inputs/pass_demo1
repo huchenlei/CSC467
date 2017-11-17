@@ -1,6 +1,6 @@
 { 
    vec4 temp;
-   vec3 stupid = vec3(2.0,2.0,2.0);
+   vec3 stupid;
    stupid[0] = dp3(stupid,stupid);
 if (true){
    temp[0] = gl_Color[0] * gl_FragCoord[0];
@@ -10,8 +10,6 @@ if (true){
 }
 else{
    temp = gl_Color;
-   temp = (temp || true) && false;
-   
 }
   
   gl_FragColor = temp;

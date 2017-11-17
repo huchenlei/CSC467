@@ -206,6 +206,7 @@ void ast_condition_check(node* ast) {
 void ast_function_check(node* ast) {
     if (ast->kind != FUNCTION_NODE) return;
     node* argument_node = ast->func_expr.args;
+    ast->is_const = 0;
     switch (ast->func_expr.func_name) {
         case 0:  // dp3
             if (argument_node->argument.arg_size != 2) {
@@ -303,6 +304,7 @@ void ast_constructor_check(node* ast) {
     node* argument_node = ast->binary_node.right;
     ast->type_code = type_node->type_code;
     ast->vec_size = type_node->vec_size;
+    ast->is_const = argument_node->is_const;
     if (constructor_type_check(ast->type_code, argument_node->type_code)) {
         errorOccurred = 1;
         fprintf(errorFile,
@@ -330,8 +332,10 @@ void ast_constructor_check(node* ast) {
 void ast_simple_expr_eval(node* ast) {
     if (ast->kind == NESTED_EXPRESSION_NODE ||
         ast->kind == VAR_EXPRESSION_NODE) {
-        ast->type_code = ast->unary_node.right->type_code;
-        ast->vec_size = ast->unary_node.right->vec_size;
+        node *child = ast->unary_node.right;
+        ast->type_code = child->type_code;
+        ast->vec_size = child->vec_size;
+        ast->is_const = child->is_const;
     }
 }
 
@@ -344,11 +348,13 @@ void ast_argument_check(node* ast) {
         ast->type_code = args_node->type_code;
         ast->vec_size = args_node->vec_size;
         ast->argument.arg_size = args_node->argument.arg_size;
+        ast->is_const = args_node->is_const;
     } else if (!args_node) {  // arguments -> expression
         assert(expr_node);
         ast->type_code = expr_node->type_code;
         ast->vec_size = expr_node->vec_size;
         ast->argument.arg_size = 1;
+        ast->is_const = expr_node->is_const;
     } else {  // arguments -> arguments , expression
         if (args_node->type_code != expr_node->type_code ||
             args_node->vec_size != expr_node->vec_size) {
@@ -359,6 +365,7 @@ void ast_argument_check(node* ast) {
         ast->type_code = args_node->type_code;
         ast->vec_size = args_node->vec_size;
         ast->argument.arg_size = args_node->argument.arg_size + 1;
+        ast->is_const = expr_node->is_const && args_node->is_const;
     }
 }
 
@@ -395,6 +402,12 @@ void ast_assignment_check(node* ast) {
         goto ast_assignment_check_error;
     }
     set_inited(ste);
+<<<<<<< HEAD
+=======
+    // Default case assignment will not return a typed node
+    ast->type_code = dest->type_code;
+    ast->vec_size = dest->vec_size;
+>>>>>>> 9278f3c095866e345a8e1c0c583e17205fffe7f3
     return;
 ast_assignment_check_error:
     errorOccurred = 1;

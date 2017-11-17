@@ -84,18 +84,21 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
   case BOOL_NODE:
 	ast->type_code = BOOL_T;
         ast->vec_size = 1;
+        ast->is_const = 1;
 	ast->literal_expr.int_val = va_arg(args, int);
 	break;
 	
   case INT_NODE:
 	ast->type_code = INT_T;
         ast->vec_size = 1;
+        ast->is_const = 1;
 	ast->literal_expr.int_val = va_arg(args, int);
 	break;
 
   case FLOAT_NODE:
 	ast->type_code = FLOAT_T;
         ast->vec_size = 1;
+        ast->is_const = 1;
 	ast->literal_expr.float_val = va_arg(args, double);
   	break;
 
