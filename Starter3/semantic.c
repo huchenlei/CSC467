@@ -148,6 +148,9 @@ void ast_operator_check(node* ast) {
                     goto ast_operator_check_error;
                 }
                 break;
+            case UMINUS: 
+                assert(oplen = 1);
+                break;
             default:
                 // Do nothing
                 break;
@@ -163,6 +166,7 @@ void ast_operator_check(node* ast) {
     return;
 
 ast_operator_check_error:
+    errorOccurred = 1;
     ast->type_code = -1;
     ast->vec_size = 0;
 }
@@ -212,40 +216,61 @@ void ast_assignment_check(node* ast) {
                 ast->line);
         goto ast_assignment_check_error;
     }
+    set_inited(ste);
+    // Default case assignment will not return a typed node
+    ast->type_code = -1;
+    ast->vec_size = 0;
     return;
 ast_assignment_check_error:
     ast->type_code = -1;
     ast->vec_size = 0;
+    errorOccurred = 1;
 }
 
 void ast_declaration_check(node* ast) {
+    if (ast->kind != DECLARATION_NODE) return;
+    assert(ast->declaration.var_name != NULL);
+    node* type_node = ast->declaration.type_node;
+    ast->type_code = type_node->type_code;
+    ast->is_const = type_node->is_const;
+    ast->vec_size = type_node->vec_size;
+    
     if (ast->declaration.expr) {
-        if (scope_define_symbol(ast->declaration.var_name,
-                                ast->is_const, ast->type_code,
-                                ast->vec_size)) {
-            errorOccurred = 1;
-            fprintf(errorFile, "LINE: %d: VariableCan not be declared twice\n",
+        if (scope_define_symbol(ast->declaration.var_name, ast->is_const,
+                                ast->type_code, ast->vec_size)) {
+            fprintf(errorFile, "%d: Variable can not be declared twice\n",
                     ast->line);
-            if (ast->is_const){
-                
-            }
-            if (ast->declaration.expr->type_code != ast->type_code 
-                    || ast->declaration.expr->vec_size != ast->vec_size){
-                errorOccurred = 1;
-                fprintf(errorFile, "LINE: %d: expression should have the same"
-                        "type as the declarated variable\n",
+            goto ast_declaration_check_error;
+        }
+        if (ast->declaration.expr->type_code != ast->declaration.type_node->type_code ||
+            ast->declaration.expr->vec_size != ast->declaration.type_node->vec_size) {
+            fprintf(errorFile,
+                    "%d: expression should have the same"
+                    "type as the declarated variable\n",
                     ast->line);
-            }
+            goto ast_declaration_check_error;
+        }
+        if (ast->declaration.type_node->is_const) {
+            // check whether the expr is an literal or constructor
+            // TODO
         }
     } else {
-        if (scope_declare_symbol(ast->declaration.var_name,
-                                 ast->is_const, ast->type_code,
-                                 ast->vec_size)) {
+        if (ast->declaration.type_node->is_const) {
+            fprintf(errorFile,
+                    "%d: const expression must be initialized at declaration\n",
+                    ast->line);
+            goto ast_declaration_check_error;
+        }
+        if (scope_declare_symbol(ast->declaration.var_name, ast->is_const,
+                                 ast->type_code, ast->vec_size)) {
             errorOccurred = 1;
-            fprintf(errorFile, "LINE: %d: Variable Can not be declared twice\n",
+            fprintf(errorFile, "%d: Variable Can not be declared twice\n",
                     ast->line);
         }
     }
+    return;
+ast_declaration_check_error:
+    errorOccurred = 1;
 }
 
 void ast_pre_check(node* ast, int depth) {
@@ -277,6 +302,8 @@ void ast_pre_check(node* ast, int depth) {
 void ast_post_check(node* ast, int depth) {
     ast_operator_check(ast);
     ast_condition_check(ast);
+    ast_assignment_check(ast);
+    ast_declaration_check(ast);
     node_kind kind = ast->kind;
     // dispatch to each semantic check functions
     switch (kind) {
@@ -328,9 +355,6 @@ void ast_post_check(node* ast, int depth) {
         case NESTED_SCOPE_NODE:
             break;
         case DECLARATION_NODE:
-            ast->type_code = ast->declaration.type_node->type_code;
-            ast->vec_size = ast->declaration.type_node->vec_size;
-            ast_declaration_check(ast);
             break;
         case DECLARATIONS_NODE:
             break;

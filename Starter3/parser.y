@@ -222,7 +222,7 @@ expression
   /* unary opterators */
   | '-' expression %prec UMINUS
       { yTRACE("expression -> - expression \n");
-		$$ = ast_allocate(UNARY_EXPRESION_NODE, yyline, '-', $2); }
+		$$ = ast_allocate(UNARY_EXPRESION_NODE, yyline, UMINUS, $2); }
   | '!' expression %prec '!'
       { yTRACE("expression -> ! expression \n");
 		$$ = ast_allocate(UNARY_EXPRESION_NODE, yyline, '!', $2); }

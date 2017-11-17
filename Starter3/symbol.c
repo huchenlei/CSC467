@@ -81,7 +81,7 @@ st_entry* scope_new_entry() {
         new_st->_is_pivot = 1;
     } else {
         // move stack pointer
-        new_st = prev + sizeof (st_entry);
+        new_st = &(prev[1]);
         new_st->_is_pivot = 0;
     }
     
