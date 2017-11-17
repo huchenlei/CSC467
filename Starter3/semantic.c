@@ -32,6 +32,20 @@ int is_in_set(const int* arr, size_t len, int target) {
     return 0;  // false
 }
 
+int vec_to_scala(int type_code) {
+    assert(is_in_set(vec_boolean_types, 1, type_code) ||
+           is_in_set(vec_arithmetic_types, 2, type_code));
+    switch (type_code) {
+        case BVEC_T:
+            return BOOL_T;
+        case IVEC_T:
+            return INT_T;
+        case VEC_T:
+            return FLOAT_T;
+    }
+    return -1;
+}
+
 void ast_operator_check(node* ast) {
     node_kind kind = ast->kind;
     int op = 0;
@@ -148,7 +162,7 @@ void ast_operator_check(node* ast) {
                     goto ast_operator_check_error;
                 }
                 break;
-            case UMINUS: 
+            case UMINUS:
                 assert(oplen = 1);
                 break;
             default:
@@ -190,9 +204,7 @@ void ast_constructor_check(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
 }
 
-void ast_argument_check(node* ast) {
-    
-}
+void ast_argument_check(node* ast) {}
 
 void ast_assignment_check(node* ast) {
     if (ast->kind != ASSIGNMENT_NODE) return;
@@ -238,7 +250,7 @@ void ast_declaration_check(node* ast) {
     ast->type_code = type_node->type_code;
     ast->is_const = type_node->is_const;
     ast->vec_size = type_node->vec_size;
-    
+
     if (ast->declaration.expr) {
         if (scope_define_symbol(ast->declaration.var_name, ast->is_const,
                                 ast->type_code, ast->vec_size)) {
@@ -246,12 +258,18 @@ void ast_declaration_check(node* ast) {
                     ast->line);
             goto ast_declaration_check_error;
         }
-        if (ast->declaration.expr->type_code != ast->declaration.type_node->type_code ||
-            ast->declaration.expr->vec_size != ast->declaration.type_node->vec_size) {
+        if (ast->declaration.expr->type_code !=
+                ast->declaration.type_node->type_code ||
+            ast->declaration.expr->vec_size !=
+                ast->declaration.type_node->vec_size) {
             fprintf(errorFile,
                     "%d: expression should have the same"
-                    "type as the declarated variable\n",
-                    ast->line);
+                    " type as the declarated variable(declared as (%d, %d), "
+                    "but assigned as (%d, %d))\n",
+                    ast->line, ast->declaration.type_node->type_code,
+                    ast->declaration.type_node->vec_size,
+                    ast->declaration.expr->type_code,
+                    ast->declaration.expr->vec_size);
             goto ast_declaration_check_error;
         }
         if (ast->declaration.type_node->is_const) {
@@ -267,13 +285,54 @@ void ast_declaration_check(node* ast) {
         }
         if (scope_declare_symbol(ast->declaration.var_name, ast->is_const,
                                  ast->type_code, ast->vec_size)) {
-            errorOccurred = 1;
             fprintf(errorFile, "%d: Variable Can not be declared twice\n",
                     ast->line);
+            goto ast_declaration_check_error;
         }
     }
     return;
 ast_declaration_check_error:
+    errorOccurred = 1;
+}
+
+void ast_variable_check(node* ast) {
+    if (ast->kind != VAR_NODE) return;
+    const char* var_name = ast->variable.var_name;
+    assert(var_name != NULL);
+
+    st_entry* ste = scope_find_entry(var_name);
+    if (ste == NULL) {
+        fprintf(errorFile, "%d: Variable '%s' used before declaration\n",
+                ast->line, var_name);
+        goto ast_variable_check_error;
+    }
+
+    if (ast->variable.is_array) {
+        // Index check
+        if (ste->vec_size == 1) {
+            fprintf(errorFile,
+                    "%d: Scala variable %s can not be accessed with index\n",
+                    ast->line, var_name);
+            goto ast_variable_check_error;
+        }
+
+        if (ste->vec_size <= ast->variable.index) {
+            fprintf(errorFile,
+                    "%d: Vector index out of bound. Try to access vector of "
+                    "dimension %d with index %d\n",
+                    ast->line, ste->vec_size, ast->variable.index);
+            goto ast_variable_check_error;
+        }
+        ast->type_code = vec_to_scala(ste->type_code);
+        ast->vec_size = 1;
+    } else {
+        ast->type_code = ste->type_code;
+        ast->vec_size = ste->vec_size;
+    }
+    ast->is_const = ste->is_const;
+
+    return;
+ast_variable_check_error:
     errorOccurred = 1;
 }
 
@@ -308,6 +367,8 @@ void ast_post_check(node* ast, int depth) {
     ast_condition_check(ast);
     ast_assignment_check(ast);
     ast_declaration_check(ast);
+    ast_variable_check(ast);
+
     node_kind kind = ast->kind;
     // dispatch to each semantic check functions
     switch (kind) {
