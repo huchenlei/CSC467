@@ -57,7 +57,7 @@ void ast_operator_check(node* ast) {
 
     // operands with invalid types generally is rejected
     for (size_t i = 0; i < oplen; i++) {
-        if (operands[i]->type_code == -1 || operands[i]->vec_size == 0) {
+        if (oprands[i]->type_code == -1 || oprands[i]->vec_size == 0) {
             fprintf(errorFile, "%d: type error due to previous errors\n",
                     ast->line);
             goto ast_operator_check_error;
@@ -66,12 +66,12 @@ void ast_operator_check(node* ast) {
 
     // if nothing is wrong sv, vs, vv, ss will all yeild result type with the
     // operands with highest order
-    if (oplen == 1 || operands[0]->vec_size > operands[1]->vec_size) {
-        ast->vec_size = operands[0]->vec_size;
-        ast->type_code = operands[0]->type_code;
+    if (oplen == 1 || oprands[0]->vec_size > oprands[1]->vec_size) {
+        ast->vec_size = oprands[0]->vec_size;
+        ast->type_code = oprands[0]->type_code;
     } else {
-        ast->vec_size = operands[1]->vec_size;
-        ast->type_code = operands[1]->type_code;
+        ast->vec_size = oprands[1]->vec_size;
+        ast->type_code = oprands[1]->type_code;
     }
 
     if (is_in_set(logic_ops, 3, op)) {
@@ -156,7 +156,7 @@ void ast_operator_check(node* ast) {
         // Operator not in recognized
         fprintf(errorFile,
                 "%d: [SEVERE](This is an internal issue and should never "
-                "happen) operator not recognized\n");
+                "happen) operator not recognized\n",ast->line);
     }
 ast_operator_check_error:
     ast->type_code = -1;
@@ -182,7 +182,7 @@ void ast_constructor_check(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
 }
 
-void ast_ void ast_declaration_check(node* ast) {
+void ast_declaration_check(node* ast) {
     if (ast->declaration.expr) {
         if (scope_define_symbol(ast->declaration.var_name,
                                 ast->declaration.is_const, ast->type_code,
