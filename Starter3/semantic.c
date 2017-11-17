@@ -156,8 +156,12 @@ void ast_operator_check(node* ast) {
         // Operator not in recognized
         fprintf(errorFile,
                 "%d: [SEVERE](This is an internal issue and should never "
-                "happen) operator not recognized\n",ast->line);
+                "happen) operator not recognized\n",
+                ast->line);
+        goto ast_operator_check_error;
     }
+    return;
+
 ast_operator_check_error:
     ast->type_code = -1;
     ast->vec_size = 0;
@@ -184,6 +188,38 @@ void ast_constructor_check(node* ast) {
 
 void ast_argument_check(node* ast) {
     
+}
+
+void ast_assignment_check(node* ast) {
+    if (ast->kind != ASSIGNMENT_NODE) return;
+
+    node* dest = ast->binary_node.left;
+    node* src = ast->binary_node.right;
+
+    const char* var_name = dest->variable.var_name;
+    // Destination need to be a variable node
+    assert(var_name != NULL);
+
+    st_entry* ste = scope_find_entry(var_name);
+    if (ste == NULL) {
+        fprintf(errorFile, "%d: Variable %s used before declaration\n",
+                ast->line, var_name);
+        goto ast_assignment_check_error;
+    }
+    if (ste->is_const) {
+        fprintf(errorFile, "%d: Assigning value to const variable %s\n",
+                ast->line, var_name);
+        goto ast_assignment_check_error;
+    }
+    if (dest->type_code != src->type_code) {
+        fprintf(errorFile, "%d: Assigning variable to imcompatible type\n",
+                ast->line);
+        goto ast_assignment_check_error;
+    }
+    return;
+ast_assignment_check_error:
+    ast->type_code = -1;
+    ast->vec_size = 0;
 }
 
 void ast_declaration_check(node* ast) {
@@ -243,6 +279,8 @@ void ast_pre_check(node* ast, int depth) {
 }
 
 void ast_post_check(node* ast, int depth) {
+    ast_operator_check(ast);
+    ast_condition_check(ast);
     node_kind kind = ast->kind;
     // dispatch to each semantic check functions
     switch (kind) {
