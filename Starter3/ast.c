@@ -21,6 +21,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
   ast->line = yyline;
   ast->type_code = -1;
   ast->vec_size = -1;
+  ast->is_const = 0;
   va_start(args, yyline); 
   switch(kind) {
   
@@ -32,7 +33,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
  	break;
 
   case DECLARATION_NODE:
-	ast->declaration.is_const = va_arg(args, int);
+	ast->is_const = va_arg(args, int);
 	ast->declaration.type_node = va_arg(args, node *);
 	ast->declaration.var_name = va_arg(args, char *);
 	ast->declaration.expr = va_arg(args, node *);
