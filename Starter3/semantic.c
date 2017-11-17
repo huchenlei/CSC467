@@ -89,6 +89,12 @@ void ast_operator_check(node* ast) {
         ast->type_code = oprands[1]->type_code;
     }
 
+    if (oplen == 1) {
+        ast->is_const = oprands[0]->is_const;
+    } else {
+        ast->is_const = oprands[0]->is_const && oprands[1]->is_const;
+    }
+
     if (is_in_set(logic_ops, 3, op)) {
         // All operands to logical ops must have boolean types
         for (size_t i = 0; i < oplen; i++) {
@@ -362,6 +368,10 @@ void ast_assignment_check(node* ast) {
     node* dest = ast->binary_node.left;
     node* src = ast->binary_node.right;
 
+    // Default case assignment will not return a typed node
+    ast->type_code = -1;
+    ast->vec_size = 0;
+
     const char* var_name = dest->variable.var_name;
     // Destination need to be a variable node
     assert(var_name != NULL);
@@ -385,13 +395,8 @@ void ast_assignment_check(node* ast) {
         goto ast_assignment_check_error;
     }
     set_inited(ste);
-    // Default case assignment will not return a typed node
-    ast->type_code = -1;
-    ast->vec_size = 0;
     return;
 ast_assignment_check_error:
-    ast->type_code = -1;
-    ast->vec_size = 0;
     errorOccurred = 1;
 }
 
