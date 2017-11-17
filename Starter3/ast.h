@@ -112,7 +112,12 @@ struct node_ {
       node *inside_else;
 
     } if_statement;
-
+    
+    struct {
+        node *arguments;
+        node *expr;
+        int arg_size;
+    } argument;
     // etc.
   };
 };

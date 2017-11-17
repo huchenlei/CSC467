@@ -182,6 +182,10 @@ void ast_constructor_check(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
 }
 
+void ast_argument_check(node* ast) {
+    
+}
+
 void ast_declaration_check(node* ast) {
     if (ast->declaration.expr) {
         if (scope_define_symbol(ast->declaration.var_name,
