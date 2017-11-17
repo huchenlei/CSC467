@@ -212,10 +212,16 @@ void ast_function_check(node* ast) {
                 (argument_node->vec_size != 3 &&
                  argument_node->vec_size != 4)) {
                 errorOccurred = 1;
+<<<<<<< HEAD
                 fprintf(errorFile,
                         "LINE: %d, dp3 only takes vec3(4) ivec3(4)"
                         "as arguments",
                         ast->line);
+=======
+                fprintf(errorFile, "LINE: %d, dp3 only takes vec3(4) ivec3(4)"
+                        "as arguments %d, %d",
+                        ast->line, argument_node->type_code, argument_node->vec_size);
+>>>>>>> 022c8a8014fc7364667fd57654c099a501ffb0fa
             }
             if (argument_node->type_code == VEC_T) {
                 ast->type_code = FLOAT_T;
@@ -270,18 +276,46 @@ void ast_function_check(node* ast) {
     }
 }
 
+int constructor_type_check(int cnstr_type, int arg_type){
+    switch (cnstr_type){
+        case VEC_T:
+            if (arg_type != FLOAT_T) return 1;
+            break;
+        case IVEC_T:
+            if (arg_type != INT_T) return 1;
+            break;
+        case BVEC_T:
+            if (arg_type != BOOL_T) return 1;
+            break;
+        default:
+            if (cnstr_type != arg_type){
+                return 1;
+            }
+            break;;
+    }
+    return 0;
+}
+
 void ast_constructor_check(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
     node* type_node = ast->binary_node.left;
     node* argument_node = ast->binary_node.right;
     ast->type_code = type_node->type_code;
     ast->vec_size = type_node->vec_size;
+<<<<<<< HEAD
     if (ast->type_code != argument_node->type_code) {
         errorOccurred = 1;
         fprintf(errorFile,
                 "LINE: %d, arguments type in construction call "
                 "is not consistent \n",
                 ast->line);
+=======
+    if (constructor_type_check(ast->type_code, argument_node->type_code)){
+        errorOccurred = 1;
+        fprintf(errorFile,
+                "LINE: %d, arguments type in construction call "
+                "is not consistent\n", ast->line);
+>>>>>>> 022c8a8014fc7364667fd57654c099a501ffb0fa
     }
     if (argument_node->vec_size != 1) {
         errorOccurred = 1;
@@ -300,7 +334,13 @@ void ast_constructor_check(node* ast) {
     }
 }
 
+<<<<<<< HEAD
 void ast_simple_expr_eval(node* ast) {
+=======
+
+
+void ast_simple_expr_eval(node* ast){
+>>>>>>> 022c8a8014fc7364667fd57654c099a501ffb0fa
     if (ast->kind == NESTED_EXPRESSION_NODE ||
         ast->kind == VAR_EXPRESSION_NODE) {
         ast->type_code = ast->unary_node.right->type_code;
