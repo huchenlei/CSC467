@@ -191,7 +191,7 @@ void ast_condition_check(node* ast) {
     int type_cond = ast->if_statement.condition->type_code;
     if (!is_in_set(scala_boolean_types, 3, type_cond)) {
         fprintf(errorFile,
-                "%d, condition of if statement must have boolean value as "
+                "%d: condition of if statement must have boolean value as "
                 "condition\n",
                 ast->line);
     }
@@ -199,41 +199,42 @@ void ast_condition_check(node* ast) {
 
 void ast_function_check(node* ast) {
     if (ast->kind != FUNCTION_NODE) return;
-    node *argument_node = ast->func_expr.args;
-    switch(ast->func_expr.func_name){
-        case 0://dp3
-            if (argument_node->argument.arg_size != 2){
+    node* argument_node = ast->func_expr.args;
+    switch (ast->func_expr.func_name) {
+        case 0:  // dp3
+            if (argument_node->argument.arg_size != 2) {
                 errorOccurred = 1;
                 fprintf(errorFile, "LINE: %d, dp3 take exactly two arguments!",
                         ast->line);
             }
             if ((argument_node->type_code != IVEC_T &&
-                    argument_node->type_code != VEC_T) ||
-                    (argument_node->vec_size != 3 &&
-                    argument_node->vec_size != 4)){
+                 argument_node->type_code != VEC_T) ||
+                (argument_node->vec_size != 3 &&
+                 argument_node->vec_size != 4)) {
                 errorOccurred = 1;
-                fprintf(errorFile, "LINE: %d, dp3 only takes vec3(4) ivec3(4)"
+                fprintf(errorFile,
+                        "LINE: %d, dp3 only takes vec3(4) ivec3(4)"
                         "as arguments",
                         ast->line);
             }
-            if (argument_node->type_code == VEC_T){
+            if (argument_node->type_code == VEC_T) {
                 ast->type_code = FLOAT_T;
                 ast->vec_size = 1;
             }
-            if (argument_node->type_code == IVEC_T){
+            if (argument_node->type_code == IVEC_T) {
                 ast->type_code = INT_T;
                 ast->vec_size = 1;
             }
 
             break;
-        case 1://lit
-            if (argument_node->argument.arg_size != 1){
+        case 1:  // lit
+            if (argument_node->argument.arg_size != 1) {
                 errorOccurred = 1;
                 fprintf(errorFile, "LINE: %d, lit only one argument!",
                         ast->line);
             }
             if (argument_node->type_code != VEC_T ||
-                    argument_node->vec_size != 4){
+                argument_node->vec_size != 4) {
                 errorOccurred = 1;
                 fprintf(errorFile, "LINE: %d, lit only take vec4 as argument!",
                         ast->line);
@@ -241,93 +242,97 @@ void ast_function_check(node* ast) {
             ast->type_code = VEC_T;
             ast->vec_size = 4;
             break;
-        case 2://rsq
-            if (argument_node->argument.arg_size != 1){
+        case 2:  // rsq
+            if (argument_node->argument.arg_size != 1) {
                 errorOccurred = 1;
                 fprintf(errorFile, "LINE: %d, rsq only one argument!",
                         ast->line);
             }
             if (argument_node->type_code != FLOAT_T &&
-                    argument_node->type_code != INT_T){
+                argument_node->type_code != INT_T) {
                 errorOccurred = 1;
-                fprintf(errorFile, "LINE: %d, rsq only take float or "
+                fprintf(errorFile,
+                        "LINE: %d, rsq only take float or "
                         "int as argument!",
                         ast->line);
             }
-            if (argument_node->type_code == FLOAT_T){
+            if (argument_node->type_code == FLOAT_T) {
                 ast->type_code = FLOAT_T;
                 ast->vec_size = 1;
             }
-            if (argument_node->type_code == INT_T){
+            if (argument_node->type_code == INT_T) {
                 ast->type_code = INT_T;
                 ast->vec_size = 1;
             }
             break;
-        default: break;
+        default:
+            break;
     }
 }
 
 void ast_constructor_check(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
-    node *type_node = ast->binary_node.left;
-    node *argument_node = ast->binary_node.right;
+    node* type_node = ast->binary_node.left;
+    node* argument_node = ast->binary_node.right;
     ast->type_code = type_node->type_code;
     ast->vec_size = type_node->vec_size;
-    if (ast->type_code != argument_node->type_code){
+    if (ast->type_code != argument_node->type_code) {
         errorOccurred = 1;
         fprintf(errorFile,
                 "LINE: %d, arguments type in construction call "
-                "is not consistent \n", ast->line);
+                "is not consistent \n",
+                ast->line);
     }
-    if (argument_node->vec_size != 1){
+    if (argument_node->vec_size != 1) {
         errorOccurred = 1;
-        fprintf(errorFile, "LINE: %d, arguments in construction call should "
-                "have demansion 1", ast->line);
+        fprintf(errorFile,
+                "LINE: %d, arguments in construction call should "
+                "have demansion 1",
+                ast->line);
     }
-    if (ast->vec_size != argument_node->argument.arg_size){
+    if (ast->vec_size != argument_node->argument.arg_size) {
         errorOccurred = 1;
 
-        fprintf(errorFile, "LINE: %d, number of arguments in construction call"
-                "is not consistent", ast->line);
+        fprintf(errorFile,
+                "LINE: %d, number of arguments in construction call"
+                "is not consistent",
+                ast->line);
     }
 }
 
-void ast_simple_expr_eval(node* ast){
+void ast_simple_expr_eval(node* ast) {
     if (ast->kind == NESTED_EXPRESSION_NODE ||
-            ast->kind == VAR_EXPRESSION_NODE){
+        ast->kind == VAR_EXPRESSION_NODE) {
         ast->type_code = ast->unary_node.right->type_code;
         ast->vec_size = ast->unary_node.right->vec_size;
     }
 }
 
 void ast_argument_check(node* ast) {
-     if (ast->kind != ARGUMENTS_NODE) return;
-     node *args_node = ast->argument.arguments;
-     node *expr_node = ast->argument.expr;
-     if (!expr_node){//arguments_opt -> arguments
-         assert(args_node);
-         ast->type_code = args_node->type_code;
-         ast->vec_size = args_node->vec_size;
-         ast->argument.arg_size = args_node->argument.arg_size;
-     }
-     else if (!args_node){//arguments -> expression
-         assert(expr_node);
-         ast->type_code = expr_node->type_code;
-         ast->vec_size = expr_node->vec_size;
-         ast->argument.arg_size = 1;
-     }
-     else{//arguments -> arguments , expression
-         if (args_node->type_code != expr_node->type_code ||
-                 args_node->vec_size != expr_node->vec_size){
-             errorOccurred = 1;
-             fprintf(errorFile, "LINE: %d, arguments should have same type",
-                     ast->line);
-         }
-         ast->type_code = args_node->type_code;
-         ast->vec_size = args_node->vec_size;
-         ast->argument.arg_size = args_node->argument.arg_size + 1;
-
-     }
+    if (ast->kind != ARGUMENTS_NODE) return;
+    node* args_node = ast->argument.arguments;
+    node* expr_node = ast->argument.expr;
+    if (!expr_node) {  // arguments_opt -> arguments
+        assert(args_node);
+        ast->type_code = args_node->type_code;
+        ast->vec_size = args_node->vec_size;
+        ast->argument.arg_size = args_node->argument.arg_size;
+    } else if (!args_node) {  // arguments -> expression
+        assert(expr_node);
+        ast->type_code = expr_node->type_code;
+        ast->vec_size = expr_node->vec_size;
+        ast->argument.arg_size = 1;
+    } else {  // arguments -> arguments , expression
+        if (args_node->type_code != expr_node->type_code ||
+            args_node->vec_size != expr_node->vec_size) {
+            errorOccurred = 1;
+            fprintf(errorFile, "LINE: %d, arguments should have same type",
+                    ast->line);
+        }
+        ast->type_code = args_node->type_code;
+        ast->vec_size = args_node->vec_size;
+        ast->argument.arg_size = args_node->argument.arg_size + 1;
+    }
 }
 
 void ast_assignment_check(node* ast) {
@@ -342,8 +347,10 @@ void ast_assignment_check(node* ast) {
 
     st_entry* ste = scope_find_entry(var_name);
     if (ste == NULL) {
-        fprintf(errorFile, "%d: Variable %s used before declaration\n",
-                ast->line, var_name);
+        // fprintf(errorFile, "%d: Variable %s used before declaration\n",
+        //         ast->line, var_name);
+        // Already checked in variable node
+        // No need to report error
         goto ast_assignment_check_error;
     }
     if (ste->is_const) {
@@ -352,7 +359,7 @@ void ast_assignment_check(node* ast) {
         goto ast_assignment_check_error;
     }
     if (dest->type_code != src->type_code) {
-        fprintf(errorFile, "%d: Assigning variable to imcompatible type\n",
+        fprintf(errorFile, "%d: Assigning variable to incompatible type\n",
                 ast->line);
         goto ast_assignment_check_error;
     }
@@ -369,15 +376,16 @@ ast_assignment_check_error:
 
 void ast_declaration_check(node* ast) {
     if (ast->kind != DECLARATION_NODE) return;
-    assert(ast->declaration.var_name != NULL);
+    const char* var_name = ast->declaration.var_name;
+    assert(var_name != NULL);
     node* type_node = ast->declaration.type_node;
     ast->type_code = type_node->type_code;
     ast->is_const = type_node->is_const;
     ast->vec_size = type_node->vec_size;
 
     if (ast->declaration.expr) {
-        if (scope_define_symbol(ast->declaration.var_name, ast->is_const,
-                                ast->type_code, ast->vec_size)) {
+        if (scope_define_symbol(var_name, ast->is_const, ast->type_code,
+                                ast->vec_size)) {
             fprintf(errorFile, "%d: Variable can not be declared twice\n",
                     ast->line);
             goto ast_declaration_check_error;
@@ -397,8 +405,15 @@ void ast_declaration_check(node* ast) {
             goto ast_declaration_check_error;
         }
         if (ast->declaration.type_node->is_const) {
-            // check whether the expr is an literal or constructor
-            // TODO
+            // check whether the expr is an const which can be determined
+            // in compile time
+            if (!(ast->declaration.expr->is_const)) {
+                fprintf(errorFile,
+                        "%d: must assign a const value (literal) to const "
+                        "variable %s\n",
+                        ast->line, var_name);
+            }
+            goto ast_declaration_check_error;
         }
     } else {
         if (ast->declaration.type_node->is_const) {
@@ -407,8 +422,8 @@ void ast_declaration_check(node* ast) {
                     ast->line);
             goto ast_declaration_check_error;
         }
-        if (scope_declare_symbol(ast->declaration.var_name, ast->is_const,
-                                 ast->type_code, ast->vec_size)) {
+        if (scope_declare_symbol(var_name, ast->is_const, ast->type_code,
+                                 ast->vec_size)) {
             fprintf(errorFile, "%d: Variable Can not be declared twice\n",
                     ast->line);
             goto ast_declaration_check_error;
@@ -496,57 +511,4 @@ void ast_post_check(node* ast, int depth) {
     ast_argument_check(ast);
     ast_constructor_check(ast);
     ast_simple_expr_eval(ast);
-    node_kind kind = ast->kind;
-    // dispatch to each semantic check functions
-    switch (kind) {
-        case SCOPE_NODE:
-            scope_leave();
-            break;
-        case EXPRESSION_NODE:
-            break;
-        case UNARY_EXPRESION_NODE:
-            break;
-        case BINARY_EXPRESSION_NODE:
-            break;
-        case INT_NODE:
-            break;
-        case FLOAT_NODE:
-            break;
-        case IDENT_NODE:
-            break;
-        case VAR_NODE:
-            break;
-        case FUNCTION_NODE:
-            break;
-        case CONSTRUCTOR_NODE:
-            break;
-        case TYPE_NODE:
-            break;
-        case BOOL_NODE:
-            break;
-        case ARGUMENTS_NODE:
-            break;
-        case NESTED_EXPRESSION_NODE:
-            break;
-        case VAR_EXPRESSION_NODE:
-            break;
-        case STATEMENT_NODE:
-            break;
-        case IF_STATEMENT_NODE:
-            break;
-        case WHILE_STATEMENT_NODE:
-            break;
-        case ASSIGNMENT_NODE:
-            break;
-        case NESTED_SCOPE_NODE:
-            break;
-        case DECLARATION_NODE:
-            break;
-        case DECLARATIONS_NODE:
-            break;
-        case UNKNOWN:
-            break;
-        default:
-            break;
-    }
 }
