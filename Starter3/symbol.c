@@ -8,6 +8,7 @@
 symbol_table* cur_scope = NULL;
 // Helper functions
 st_entry* scope_new_entry();
+st_entry* _scope_find_local_entry(symbol_table* scope, const char* name);
 
 void scope_enter() {
     printf("symbol: Entering scope\n");
@@ -84,7 +85,7 @@ st_entry* scope_new_entry() {
         new_st = &(prev[1]);
         new_st->_is_pivot = 0;
     }
-    
+
     cur_scope->entry_num++;
     cur_scope->tail = new_st;
     if (prev != NULL)
@@ -125,7 +126,7 @@ st_entry* scope_find_entry(const char* name) {
     assert(cur_scope != NULL);
     symbol_table* scope = cur_scope;
     while (scope != NULL) {
-        st_entry* result = scope_find_local_entry(name);
+        st_entry* result = _scope_find_local_entry(scope, name);
         if (result == NULL) {
             scope = scope->parent_scope;
         } else {
@@ -135,10 +136,10 @@ st_entry* scope_find_entry(const char* name) {
     return NULL;
 }
 
-st_entry* scope_find_local_entry(const char* name) {
+st_entry* _scope_find_local_entry(symbol_table* scope, const char* name) {
+    assert(scope != NULL);
     assert(name != NULL);
-    assert(cur_scope != NULL);
-    st_entry* cur_entry = cur_scope->head;
+    st_entry* cur_entry = scope->head;
     while (cur_entry != NULL) {
         if (strncasecmp(cur_entry->var_name, name, MAX_NAME_LEN) == 0) {
             return cur_entry;
@@ -147,6 +148,10 @@ st_entry* scope_find_local_entry(const char* name) {
         }
     }
     return NULL;
+}
+
+st_entry* scope_find_local_entry(const char* name) {
+    return _scope_find_local_entry(cur_scope, name);
 }
 
 int scope_define_symbol(const char* name, int is_const, int type_code,
