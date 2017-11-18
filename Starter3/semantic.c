@@ -203,6 +203,7 @@ void ast_condition_check(node* ast) {
                 "%d: condition of if statement must have boolean value as "
                 "condition\n",
                 ast->line);
+        errorOccurred = 1;
     }
 }
 
@@ -350,7 +351,7 @@ void ast_simple_expr_eval(node* ast) {
                         "read\n",
                         ast->line);
             }
-            if (!ste->_write_only) {
+            if (ste->_write_only) {
                 errorOccurred = 1;
                 fprintf(errorFile,
                         "%d: write only variable '%s' can not be used in "
