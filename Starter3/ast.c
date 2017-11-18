@@ -120,9 +120,18 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 
   return ast;
 }
-
+void ast_post_free(node *ast, int depth){
+    if (ast->kind == DECLARATION_NODE){
+        free(ast->declaration.var_name);
+    }
+    if (ast->kind == VAR_NODE){
+        free(ast->variable.var_name);
+    }
+    free(ast);
+}
 void ast_free(node *ast) {
-
+    ast_visit(ast, 0, NULL, &ast_post_free);
+    fprintf(dumpFile, "ast tear down\n");
 }
 
 void ast_print(node * ast) {
@@ -354,8 +363,8 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 	
 	switch(ast->kind){
   		case ARGUMENTS_NODE:
-                    ast_visit(ast->argument.arguments, depth+1, pre_func, post_func);
-                    ast_visit(ast->argument.expr, depth+1, pre_func, post_func);
+                    ast_visit(ast->argument.arguments, depth, pre_func, post_func);
+                    ast_visit(ast->argument.expr, depth, pre_func, post_func);
                     break;
   		case SCOPE_NODE:
   		case DECLARATIONS_NODE:
@@ -366,6 +375,7 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 			break;
 
 		case DECLARATION_NODE:
+                        ast_visit(ast->declaration.type_node, depth+1, pre_func, post_func);
 			ast_visit(ast->declaration.expr, depth+1, pre_func, post_func);
 			break;
 
@@ -375,6 +385,7 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 			ast_visit(ast->if_statement.inside_else, depth+1, pre_func, post_func);
 			break;
                 case CONSTRUCTOR_NODE:
+                        ast_visit(ast->binary_node.left, depth+1, pre_func, post_func);
                         ast_visit(ast->binary_node.right, depth+1, pre_func, post_func);
 			break;
 		case FUNCTION_NODE:
