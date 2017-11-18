@@ -102,7 +102,7 @@ void ast_operator_check(node* ast) {
             if (!is_in_set(boolean_types, 4, oprands[i]->type_code)) {
                 fprintf(errorFile,
                         "%d: %s operator must have bool type as %ld operand\n",
-                        ast->line, get_binary_op_str(op), i + 1);
+                        ast->line, get_op_str(op), i + 1);
                 goto ast_operator_check_error;
             }
         }
@@ -111,7 +111,7 @@ void ast_operator_check(node* ast) {
             // For || and &&
             if (oprands[0]->vec_size != oprands[1]->vec_size) {
                 fprintf(errorFile, "%d: %s operator must have same vec order\n",
-                        ast->line, get_binary_op_str(op));
+                        ast->line, get_op_str(op));
                 goto ast_operator_check_error;
             }
         }
@@ -123,7 +123,7 @@ void ast_operator_check(node* ast) {
                 fprintf(errorFile,
                         "%d: %s operator must have arithmetic type as %ld "
                         "operand\n",
-                        ast->line, get_binary_op_str(op), i + 1);
+                        ast->line, get_op_str(op), i + 1);
                 goto ast_operator_check_error;
             }
         }
@@ -152,7 +152,7 @@ void ast_operator_check(node* ast) {
                     fprintf(errorFile,
                             "%d: %s operator must have both operands scala "
                             "arithmetic value\n",
-                            ast->line, get_binary_op_str(op));
+                            ast->line, get_op_str(op));
                     goto ast_operator_check_error;
                 }
                 break;
@@ -166,7 +166,7 @@ void ast_operator_check(node* ast) {
                     fprintf(
                         errorFile,
                         "%d: %s operator must have vec size of same order\n",
-                        ast->line, get_binary_op_str(op));
+                        ast->line, get_op_str(op));
                     goto ast_operator_check_error;
                 }
                 break;

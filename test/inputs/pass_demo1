@@ -1,6 +1,6 @@
 { 
    vec4 temp;
-   vec3 stupid = vec3(2.0,2.0,2.0);	
+   const vec3 stupid = vec3(-2.0,2.0,2.0);	
    stupid[0] = dp3(stupid,stupid);
 	
 if (true){

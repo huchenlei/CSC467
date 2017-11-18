@@ -196,7 +196,7 @@ void print_indent(int depth, int is_open, int is_newline){
 	fprintf(dumpFile, is_open ? "(" : ")");
 }
 
-const char* get_binary_op_str(int op){
+const char* get_op_str(int op){
   switch(op) {
     case '-':
       return "-";
@@ -226,6 +226,8 @@ const char* get_binary_op_str(int op){
       return "/";
     case '^':
       return "^";
+    case UMINUS:
+      return "-";
     default:
       return "";
   }
@@ -266,14 +268,14 @@ void ast_pre_print(node *ast, int depth){
 
         case UNARY_EXPRESION_NODE:
             print_indent(depth, 1, 1);
-            fprintf(dumpFile, "UNARY %s %c", get_type_name(ast),
-                    char(ast->unary_expr.op));
+            fprintf(dumpFile, "UNARY %s %s", get_type_name(ast),
+                    get_op_str(ast->unary_expr.op));
             break;
 
         case BINARY_EXPRESSION_NODE:
             print_indent(depth, 1, 1);
             fprintf(dumpFile, "BINARY %s %s", get_type_name(ast),
-                    get_binary_op_str(ast->binary_expr.op));
+                    get_op_str(ast->binary_expr.op));
             break;
 
         case VAR_NODE:

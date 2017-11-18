@@ -130,6 +130,6 @@ void ast_post_print(node *ast, int depth);
 void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_func)(node*,int));
 
 // Utils
-const char* get_binary_op_str(int op);
+const char* get_op_str(int op);
 
 #endif /* AST_H_ */
