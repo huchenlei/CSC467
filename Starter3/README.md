@@ -8,10 +8,17 @@ Bouns:
 	- report type or variable name for some errors
 
 approach to type/semantic checking:
-
+	- pass type_code, vec_size, is_const from bottom.
+	ARGUMENTS check:
+		- check arguments_size in ARGUMENTS_NODE, and pass it from bottom. (ex, size++ for [each arguments -> arguments , expression] node)
+		- pass is_const, type_code, vec_size from bottom
+		 
 
 approach to AST structrure:
-
+	- create struct type for each node
+	- call ast_allocate() in parser.y to pass values and children and connect nodes
+	- also pass line_num and stored in each node for later use
+	- each node contains type_code, vec_size and is_const value, for some nodes such as type_node and declaration node, set those values based on passed arguments
 breakdown of work:
 RONGZHEN CUI (1000221823):
 	- construct AST(ast.h, ast.c)
