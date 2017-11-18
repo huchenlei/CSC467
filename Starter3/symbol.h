@@ -40,6 +40,7 @@ struct _st_entry {
                     // holistic body
     int _read_only;
     int _write_only;
+    int _declaration_line;
 };
 
 typedef struct _st_entry st_entry;
@@ -59,11 +60,12 @@ void scope_enter();
 void scope_leave();
 size_t scope_depth();
 int scope_declare_symbol(const char* name, int is_const, int type_code,
-                         int vec_size);
+                         int vec_size, int line);
 int scope_define_symbol(const char* name, int is_const, int type_code,
-                        int vec_size);
+                        int vec_size, int line);
 int scope_predefine_symbol(const char* name, int is_const, int type_code,
-                           int vec_size, int read_only, int write_only);
+                           int vec_size, int line, int read_only,
+                           int write_only);
 // set the has_init field to true
 void set_inited(st_entry* ste);
 // Find entry globally
