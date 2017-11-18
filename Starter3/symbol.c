@@ -15,12 +15,12 @@ void scope_enter() {
     int is_root_scope = (cur_scope == NULL);
     if (is_root_scope) {
         // Initialize root scope
-        cur_scope = (symbol_table*) malloc(sizeof (symbol_table));
+        cur_scope = (symbol_table*)malloc(sizeof(symbol_table));
         cur_scope->depth = 0;
         cur_scope->parent_scope = NULL;
     } else {
         // Enter a new scope
-        symbol_table* new_st = (symbol_table*) malloc(sizeof (symbol_table));
+        symbol_table* new_st = (symbol_table*)malloc(sizeof(symbol_table));
         new_st->parent_scope = cur_scope;
         new_st->depth = cur_scope->depth + 1;
         cur_scope = new_st;
@@ -51,7 +51,8 @@ void scope_leave() {
         cur_node = cur_node->_next;
     }
 #ifdef DEBUG
-    printf("scope_leave: sanity count %ld, entry num %ld\n", sanity_count, st_des->entry_num);
+    printf("scope_leave: sanity count %ld, entry num %ld\n", sanity_count,
+           st_des->entry_num);
 #endif
     assert(sanity_count == st_des->entry_num);
     assert(st_des->max_entry % BASE_ENTRY_NUM == 0);
@@ -72,12 +73,12 @@ st_entry* scope_new_entry() {
     st_entry* new_st = NULL;
     if (cur_scope->head == NULL) {
         // First call
-        new_st = (st_entry*) malloc(BASE_ST_SIZE);
+        new_st = (st_entry*)malloc(BASE_ST_SIZE);
         new_st->_is_pivot = 1;
         cur_scope->head = new_st;
     } else if (cur_scope->entry_num >= cur_scope->max_entry) {
         // reach max entry num current mem can support
-        new_st = (st_entry*) malloc(sizeof (st_entry) * cur_scope->max_entry);
+        new_st = (st_entry*)malloc(sizeof(st_entry) * cur_scope->max_entry);
         cur_scope->max_entry *= 2;
         new_st->_is_pivot = 1;
     } else {
@@ -88,13 +89,12 @@ st_entry* scope_new_entry() {
 
     cur_scope->entry_num++;
     cur_scope->tail = new_st;
-    if (prev != NULL)
-        prev->_next = new_st;
+    if (prev != NULL) prev->_next = new_st;
     return new_st;
 }
 
 int scope_declare_symbol(const char* name, int is_const, int type_code,
-        int vec_size) {
+                         int vec_size) {
     assert(cur_scope != NULL);
     assert(name != NULL);
     assert(vec_size >= 0 && vec_size <= 4);
@@ -117,9 +117,7 @@ int scope_declare_symbol(const char* name, int is_const, int type_code,
     return 0;
 }
 
-void set_inited(st_entry* ste) {
-    ste->has_init = 1;
-}
+void set_inited(st_entry* ste) { ste->has_init = 1; }
 
 st_entry* scope_find_entry(const char* name) {
     assert(name != NULL);
@@ -155,12 +153,18 @@ st_entry* scope_find_local_entry(const char* name) {
 }
 
 int scope_define_symbol(const char* name, int is_const, int type_code,
-        int vec_size) {
+                        int vec_size) {
+    return scope_predefine_symbol(name, is_const, type_code, vec_size, 0, 0);
+}
+
+int scope_predefine_symbol(const char* name, int is_const, int type_code,
+                           int vec_size, int read_only, int write_only) {
     int err = scope_declare_symbol(name, is_const, type_code, vec_size);
     if (err) return err;
     st_entry* ste = scope_find_entry(name);
     assert(ste != NULL);
     ste->has_init = 1;
-
+    ste->_read_only = read_only;
+    ste->_write_only = write_only;
     return 0;
 }

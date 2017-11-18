@@ -211,7 +211,8 @@ void ast_function_check(node* ast) {
         case 0:  // dp3
             if (argument_node->argument.arg_size != 2) {
                 errorOccurred = 1;
-                fprintf(errorFile, "LINE: %d, dp3 take exactly two arguments!",
+                fprintf(errorFile,
+                        "LINE: %d, dp3 take exactly two arguments!\n",
                         ast->line);
             }
             if ((argument_node->type_code != IVEC_T &&
@@ -221,7 +222,7 @@ void ast_function_check(node* ast) {
                 errorOccurred = 1;
                 fprintf(errorFile,
                         "LINE: %d, dp3 only takes vec3(4) ivec3(4)"
-                        "as arguments %d, %d",
+                        "as arguments %d, %d\n",
                         ast->line, argument_node->type_code,
                         argument_node->vec_size);
             }
@@ -238,13 +239,14 @@ void ast_function_check(node* ast) {
         case 1:  // lit
             if (argument_node->argument.arg_size != 1) {
                 errorOccurred = 1;
-                fprintf(errorFile, "LINE: %d, lit only one argument!",
+                fprintf(errorFile, "LINE: %d, lit only one argument!\n",
                         ast->line);
             }
             if (argument_node->type_code != VEC_T ||
                 argument_node->vec_size != 4) {
                 errorOccurred = 1;
-                fprintf(errorFile, "LINE: %d, lit only take vec4 as argument!",
+                fprintf(errorFile,
+                        "LINE: %d, lit only take vec4 as argument!\n",
                         ast->line);
             }
             ast->type_code = VEC_T;
@@ -253,7 +255,7 @@ void ast_function_check(node* ast) {
         case 2:  // rsq
             if (argument_node->argument.arg_size != 1) {
                 errorOccurred = 1;
-                fprintf(errorFile, "LINE: %d, rsq only one argument!",
+                fprintf(errorFile, "LINE: %d, rsq only one argument!\n",
                         ast->line);
             }
             if (argument_node->type_code != FLOAT_T &&
@@ -261,7 +263,7 @@ void ast_function_check(node* ast) {
                 errorOccurred = 1;
                 fprintf(errorFile,
                         "LINE: %d, rsq only take float or "
-                        "int as argument!",
+                        "int as argument!\n",
                         ast->line);
             }
             if (argument_node->type_code == FLOAT_T) {
@@ -316,7 +318,7 @@ void ast_constructor_check(node* ast) {
         errorOccurred = 1;
         fprintf(errorFile,
                 "LINE: %d, arguments in construction call should "
-                "have demansion 1",
+                "have demansion 1\n",
                 ast->line);
     }
     if (ast->vec_size != argument_node->argument.arg_size) {
@@ -324,7 +326,7 @@ void ast_constructor_check(node* ast) {
 
         fprintf(errorFile,
                 "LINE: %d, number of arguments in construction call"
-                "is not consistent",
+                "is not consistent\n",
                 ast->line);
     }
 }
@@ -332,7 +334,7 @@ void ast_constructor_check(node* ast) {
 void ast_simple_expr_eval(node* ast) {
     if (ast->kind == NESTED_EXPRESSION_NODE ||
         ast->kind == VAR_EXPRESSION_NODE) {
-        node *child = ast->unary_node.right;
+        node* child = ast->unary_node.right;
         ast->type_code = child->type_code;
         ast->vec_size = child->vec_size;
         ast->is_const = child->is_const;
@@ -359,7 +361,7 @@ void ast_argument_check(node* ast) {
         if (args_node->type_code != expr_node->type_code ||
             args_node->vec_size != expr_node->vec_size) {
             errorOccurred = 1;
-            fprintf(errorFile, "LINE: %d, arguments should have same type",
+            fprintf(errorFile, "LINE: %d, arguments should have same type\n",
                     ast->line);
         }
         ast->type_code = args_node->type_code;
@@ -392,7 +394,12 @@ void ast_assignment_check(node* ast) {
         goto ast_assignment_check_error;
     }
     if (ste->is_const) {
-        fprintf(errorFile, "%d: Assigning value to const variable %s\n",
+        fprintf(errorFile, "%d: Assigning value to const variable '%s'\n",
+                ast->line, var_name);
+        goto ast_assignment_check_error;
+    }
+    if (ste->_read_only) {
+        fprintf(errorFile, "%d: Assigning value to read only variable '%s'\n",
                 ast->line, var_name);
         goto ast_assignment_check_error;
     }
@@ -402,12 +409,9 @@ void ast_assignment_check(node* ast) {
         goto ast_assignment_check_error;
     }
     set_inited(ste);
-<<<<<<< HEAD
-=======
     // Default case assignment will not return a typed node
     ast->type_code = dest->type_code;
     ast->vec_size = dest->vec_size;
->>>>>>> 9278f3c095866e345a8e1c0c583e17205fffe7f3
     return;
 ast_assignment_check_error:
     errorOccurred = 1;
@@ -520,22 +524,24 @@ void ast_pre_check(node* ast, int depth) {
         scope_enter();
         if (scope_depth() == 0) {  // Root scope predefine vars
             // add pre-defined vars to root scope
-            scope_define_symbol("gl_FragColor", 0, VEC_T, 4);
-            scope_define_symbol("gl_FragDepth", 0, BOOL_T, 1);
-            scope_define_symbol("gl_FragCoord", 0, VEC_T, 4);
+            // Result: write only
+            scope_predefine_symbol("gl_FragColor", 0, VEC_T, 4, 0, 1);
+            scope_predefine_symbol("gl_FragDepth", 0, BOOL_T, 1, 0, 1);
+            scope_predefine_symbol("gl_FragCoord", 0, VEC_T, 4, 0, 1);
+            // Attribute: read only not constant
+            scope_predefine_symbol("gl_TexCoord", 0, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("gl_Color", 0, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("gl_Secondary", 0, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4, 1, 0);
 
-            scope_define_symbol("gl_TexCoord", 0, VEC_T, 4);
-            scope_define_symbol("gl_Color", 0, VEC_T, 4);
-            scope_define_symbol("gl_Secondary", 0, VEC_T, 4);
-            scope_define_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4);
+            // Uniform: readonly constant
+            scope_predefine_symbol("gl_Light_Half", 1, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("gl_Light_Ambient", 1, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("gl_Material_Shininess", 1, VEC_T, 4, 1, 0);
 
-            scope_define_symbol("gl_Light_Half", 1, VEC_T, 4);
-            scope_define_symbol("gl_Light_Ambient", 1, VEC_T, 4);
-            scope_define_symbol("gl_Material_Shininess", 1, VEC_T, 4);
-
-            scope_define_symbol("env1", 1, VEC_T, 4);
-            scope_define_symbol("env2", 1, VEC_T, 4);
-            scope_define_symbol("env3", 1, VEC_T, 4);
+            scope_predefine_symbol("env1", 1, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("env2", 1, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("env3", 1, VEC_T, 4, 1, 0);
         }
     }
 }

@@ -38,6 +38,8 @@ struct _st_entry {
     struct _st* _owner;
     int _is_pivot;  // whether the entry's address need to be freed as a
                     // holistic body
+    int _read_only;
+    int _write_only;
 };
 
 typedef struct _st_entry st_entry;
@@ -60,6 +62,8 @@ int scope_declare_symbol(const char* name, int is_const, int type_code,
                          int vec_size);
 int scope_define_symbol(const char* name, int is_const, int type_code,
                         int vec_size);
+int scope_predefine_symbol(const char* name, int is_const, int type_code,
+                           int vec_size, int read_only, int write_only);
 // set the has_init field to true
 void set_inited(st_entry* ste);
 // Find entry globally
