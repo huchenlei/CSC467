@@ -4,6 +4,7 @@
 #include "parser.tab.h"
 #include "semantic.h"
 
+int cur_if_scope = 0;
 void ast_pre_check(node* ast, int depth);
 void ast_post_check(node* ast, int depth);
 
@@ -194,6 +195,8 @@ ast_operator_check_error:
 
 void ast_condition_check(node* ast) {
     if (ast->kind != IF_STATEMENT_NODE) return;
+    cur_if_scope --;
+    printf("leave if_scope %d\n", cur_if_scope);
     int type_cond = ast->if_statement.condition->type_code;
     if (!is_in_set(scala_boolean_types, 3, type_cond)) {
         fprintf(errorFile,
@@ -338,6 +341,14 @@ void ast_simple_expr_eval(node* ast) {
         ast->type_code = child->type_code;
         ast->vec_size = child->vec_size;
         ast->is_const = child->is_const;
+        if (ast->kind == VAR_EXPRESSION_NODE){
+            st_entry* ste = scope_find_entry(child->variable.var_name);
+            if (!ste->has_init){
+                errorOccurred = 1;
+                fprintf(errorFile,
+                "LINE: %d, variable has not been assigned before being read\n",ast->line);
+            }
+        }
     }
 }
 
@@ -544,6 +555,10 @@ void ast_pre_check(node* ast, int depth) {
             scope_predefine_symbol("env3", 1, VEC_T, 4, 1, 0);
         }
     }
+    else if (kind == IF_STATEMENT_NODE){
+        cur_if_scope++;
+        printf("enter if_scope %d\n", cur_if_scope);
+    }
 }
 
 void ast_post_check(node* ast, int depth) {
@@ -556,4 +571,5 @@ void ast_post_check(node* ast, int depth) {
     ast_argument_check(ast);
     ast_constructor_check(ast);
     ast_simple_expr_eval(ast);
+    if (ast->kind == SCOPE_NODE) scope_leave();
 }
