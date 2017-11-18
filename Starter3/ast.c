@@ -258,7 +258,7 @@ void ast_pre_print(node *ast, int depth){
 
         case ASSIGNMENT_NODE:
             print_indent(depth, 1, 1);
-            fprintf(dumpFile, "ASSIGN %s", get_type_name(ast)); //TODO
+            fprintf(dumpFile, "ASSIGN %s", get_type_name(ast)); 
             break;
 
         case IF_STATEMENT_NODE:
@@ -284,7 +284,7 @@ void ast_pre_print(node *ast, int depth){
                 fprintf(dumpFile, "INDEX %s %s %d",
                         get_type_name(ast),
                         ast->variable.var_name,
-                        ast->variable.index); //TODO:
+                        ast->variable.index); 
             } else {
                 fprintf(dumpFile, " %s", ast->variable.var_name);
             }
