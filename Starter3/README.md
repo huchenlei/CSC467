@@ -1,19 +1,33 @@
-{ 
-   vec4 temp;
-   const vec3 stupid = vec3(-2.0,2.0,2.0);	
-   stupid[0] = dp3(stupid,stupid);
-	
-if (true){
-   temp[0] = gl_Color[0] * gl_FragCoord[0];
-   temp[1] = gl_Color[1] * gl_FragCoord[1];
-   temp[2] = gl_Color[2];
-   temp[3] = gl_Color[3] * gl_FragCoord[0] * gl_FragCoord[1];
-}
-else{
-   temp = gl_Color;
-}
-  	gl_FragColor = temp;
-	
-	
-}
+Bouns:
+- const qualified variables must be initialized with constant expressions.
+- report the line number on which the sematic error occured
+- Ensure that every variable has been assigned a value before being read.
+- Provide a contextual message that gives extra meaning to the error to help the programmer debug the error:
+	- if the error involves writing to aconst qualified variable,then report the line number where that variable was declared
+	- if double declara a variable, then report the line number where that variable was declared
+	- report type or variable name for some errors
 
+approach to type/semantic checking:
+
+
+approach to AST structrure:
+
+breakdown of work:
+RONGZHEN CUI (1000221823):
+	- construct AST(ast.h, ast.c)
+    - sematic check
+      - ast_function_check
+      - ast_argument_check
+      - ast_constructor_check
+      - ast_simple_expr_eval	
+CHENLEI HU (1002030651):
+	- construct symbol table(symbol.h, symbol.c)
+    - sematic check
+      - ast_operator_check
+      - ast_condition_check
+      - ast_assignment_check
+      - ast_declaration_check
+      - ast_variable_check
+
+
+challenges faced, novelties:
