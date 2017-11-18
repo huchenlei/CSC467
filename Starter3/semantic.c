@@ -415,8 +415,10 @@ void ast_assignment_check(node* ast) {
         goto ast_assignment_check_error;
     }
     if (ste->is_const) {
-        fprintf(errorFile, "%d: Assigning value to const variable '%s'\n",
-                ast->line, var_name);
+        fprintf(errorFile,
+                "%d: Assigning value to const variable '%s', previosly "
+                "declared at %d\n",
+                ast->line, var_name, ste->_declaration_line);
         goto ast_assignment_check_error;
     }
     if (ste->_read_only) {
@@ -424,8 +426,7 @@ void ast_assignment_check(node* ast) {
                 ast->line, var_name);
         goto ast_assignment_check_error;
     }
-    if (dest->type_code != src->type_code ||
-        dest->vec_size != src->vec_size) {
+    if (dest->type_code != src->type_code || dest->vec_size != src->vec_size) {
         fprintf(errorFile, "%d: Assigning variable to incompatible type\n",
                 ast->line);
         goto ast_assignment_check_error;
@@ -445,14 +446,16 @@ void ast_declaration_check(node* ast) {
     assert(var_name != NULL);
     node* type_node = ast->declaration.type_node;
     ast->type_code = type_node->type_code;
-    ast->is_const = type_node->is_const;
     ast->vec_size = type_node->vec_size;
 
     if (ast->declaration.expr) {
         if (scope_define_symbol(var_name, ast->is_const, ast->type_code,
-                                ast->vec_size)) {
-            fprintf(errorFile, "%d: Variable can not be declared twice\n",
-                    ast->line);
+                                ast->vec_size, ast->line)) {
+            fprintf(errorFile,
+                    "%d: Variable '%s' can not be declared more than once. "
+                    "Previously declared at %d\n",
+                    ast->line, var_name,
+                    scope_find_local_entry(var_name)->_declaration_line);
             goto ast_declaration_check_error;
         }
         if (ast->declaration.expr->type_code !=
@@ -488,9 +491,12 @@ void ast_declaration_check(node* ast) {
             goto ast_declaration_check_error;
         }
         if (scope_declare_symbol(var_name, ast->is_const, ast->type_code,
-                                 ast->vec_size)) {
-            fprintf(errorFile, "%d: Variable Can not be declared twice\n",
-                    ast->line);
+                                 ast->vec_size, ast->line)) {
+            fprintf(errorFile,
+                    "%d: Variable '%s' can not be declared more than once. "
+                    "Previously declared at %d\n",
+                    ast->line, var_name,
+                    scope_find_local_entry(var_name)->_declaration_line);
             goto ast_declaration_check_error;
         }
     }
@@ -547,23 +553,24 @@ void ast_pre_check(node* ast, int depth) {
         if (scope_depth() == 0) {  // Root scope predefine vars
             // add pre-defined vars to root scope
             // Result: write only
-            scope_predefine_symbol("gl_FragColor", 0, VEC_T, 4, 0, 1);
-            scope_predefine_symbol("gl_FragDepth", 0, BOOL_T, 1, 0, 1);
-            scope_predefine_symbol("gl_FragCoord", 0, VEC_T, 4, 0, 1);
+            scope_predefine_symbol("gl_FragColor", 0, VEC_T, 4, 0, 0, 1);
+            scope_predefine_symbol("gl_FragDepth", 0, BOOL_T, 1, 0, 0, 1);
+            scope_predefine_symbol("gl_FragCoord", 0, VEC_T, 4, 0, 0, 1);
             // Attribute: read only not constant
-            scope_predefine_symbol("gl_TexCoord", 0, VEC_T, 4, 1, 0);
-            scope_predefine_symbol("gl_Color", 0, VEC_T, 4, 1, 0);
-            scope_predefine_symbol("gl_Secondary", 0, VEC_T, 4, 1, 0);
-            scope_predefine_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("gl_TexCoord", 0, VEC_T, 4, 0, 1, 0);
+            scope_predefine_symbol("gl_Color", 0, VEC_T, 4, 0, 1, 0);
+            scope_predefine_symbol("gl_Secondary", 0, VEC_T, 4, 0, 1, 0);
+            scope_predefine_symbol("gl_gl_FogFragCoord", 0, VEC_T, 4, 0, 1, 0);
 
             // Uniform: readonly constant
-            scope_predefine_symbol("gl_Light_Half", 1, VEC_T, 4, 1, 0);
-            scope_predefine_symbol("gl_Light_Ambient", 1, VEC_T, 4, 1, 0);
-            scope_predefine_symbol("gl_Material_Shininess", 1, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("gl_Light_Half", 1, VEC_T, 4, 0, 1, 0);
+            scope_predefine_symbol("gl_Light_Ambient", 1, VEC_T, 4, 0, 1, 0);
+            scope_predefine_symbol("gl_Material_Shininess", 1, VEC_T, 4, 0, 1,
+                                   0);
 
-            scope_predefine_symbol("env1", 1, VEC_T, 4, 1, 0);
-            scope_predefine_symbol("env2", 1, VEC_T, 4, 1, 0);
-            scope_predefine_symbol("env3", 1, VEC_T, 4, 1, 0);
+            scope_predefine_symbol("env1", 1, VEC_T, 4, 0, 1, 0);
+            scope_predefine_symbol("env2", 1, VEC_T, 4, 0, 1, 0);
+            scope_predefine_symbol("env3", 1, VEC_T, 4, 0, 1, 0);
         }
     } else if (kind == IF_STATEMENT_NODE) {
         cur_if_scope++;

@@ -94,7 +94,7 @@ st_entry* scope_new_entry() {
 }
 
 int scope_declare_symbol(const char* name, int is_const, int type_code,
-                         int vec_size) {
+                         int vec_size, int line) {
     assert(cur_scope != NULL);
     assert(name != NULL);
     assert(vec_size >= 0 && vec_size <= 4);
@@ -114,6 +114,7 @@ int scope_declare_symbol(const char* name, int is_const, int type_code,
     new_st->_next = NULL;
     new_st->_owner = cur_scope;
 
+    new_st->_declaration_line = line;
     return 0;
 }
 
@@ -153,13 +154,15 @@ st_entry* scope_find_local_entry(const char* name) {
 }
 
 int scope_define_symbol(const char* name, int is_const, int type_code,
-                        int vec_size) {
-    return scope_predefine_symbol(name, is_const, type_code, vec_size, 0, 0);
+                        int vec_size, int line) {
+    return scope_predefine_symbol(name, is_const, type_code, vec_size, line, 0,
+                                  0);
 }
 
 int scope_predefine_symbol(const char* name, int is_const, int type_code,
-                           int vec_size, int read_only, int write_only) {
-    int err = scope_declare_symbol(name, is_const, type_code, vec_size);
+                           int vec_size, int line, int read_only,
+                           int write_only) {
+    int err = scope_declare_symbol(name, is_const, type_code, vec_size, line);
     if (err) return err;
     st_entry* ste = scope_find_entry(name);
     assert(ste != NULL);
