@@ -402,12 +402,9 @@ void ast_assignment_check(node* ast) {
         goto ast_assignment_check_error;
     }
     set_inited(ste);
-<<<<<<< HEAD
-=======
     // Default case assignment will not return a typed node
     ast->type_code = dest->type_code;
     ast->vec_size = dest->vec_size;
->>>>>>> 9278f3c095866e345a8e1c0c583e17205fffe7f3
     return;
 ast_assignment_check_error:
     errorOccurred = 1;
@@ -550,4 +547,5 @@ void ast_post_check(node* ast, int depth) {
     ast_argument_check(ast);
     ast_constructor_check(ast);
     ast_simple_expr_eval(ast);
+    if (ast->kind == SCOPE_NODE) scope_leave();
 }
