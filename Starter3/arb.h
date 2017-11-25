@@ -1,6 +1,8 @@
 #ifndef ARB_H
 #define ARB_H
 
+#include "ast.h"
+
 /**
     Convert ast node to corresponding arb assembly
 */
@@ -42,7 +44,7 @@
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 
-enum inst_code { FOREACH_INST(GENERATE_ENUM) };
+typedef enum { FOREACH_INST(GENERATE_ENUM) } inst_code;
 static const char* INST_STRING[] = {FOREACH_INST(GENERATE_STRING)};
 
 typedef struct _inst {
@@ -55,7 +57,6 @@ typedef struct _inst {
     struct _inst* _next;
 } inst;
 
-struct node;
 // Convert ast to arb instructions
 // @returns instruction linked list
 inst* to_arb(node* root);

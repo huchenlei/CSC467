@@ -16,6 +16,7 @@
 # make  codegen      Build the code generator module
 # make  symbol       Build the symbol table module
 # make  machine      Build the machine interpreter module
+# make  arb          Build the ARB module
 ###########################################################################
 
 ###########################################################################
@@ -40,9 +41,10 @@ YFLAGS  =-dtvy
 LEXER_OBJ =scanner.o
 PARSER_OBJ=parser.o
 AST_OBJ   =ast.o semantic.o symbol.o
+ARB_OBJ   =arb.o
 #CODE_OBJ  =codegen.o  
 OBJs      =compiler467.o globalvars.o $(LEXER_OBJ) \
-           $(PARSER_OBJ) $(AST_OBJ)   
+           $(PARSER_OBJ) $(AST_OBJ) $(ARB_OBJ)
 
 ###########################################################################
 #	PHONY rules
