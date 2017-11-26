@@ -11,7 +11,9 @@ st_entry* scope_new_entry();
 st_entry* _scope_find_local_entry(symbol_table* scope, const char* name);
 
 void scope_enter() {
+#ifdef DEBUG
     printf("symbol: Entering scope\n");
+#endif
     int is_root_scope = (cur_scope == NULL);
     if (is_root_scope) {
         // Initialize root scope
@@ -33,7 +35,9 @@ void scope_enter() {
 }
 
 void scope_leave() {
+#ifdef DEBUG
     printf("symbol: Leaving scope\n");
+#endif
     assert(cur_scope != NULL);
 
     symbol_table* st_des = cur_scope;
