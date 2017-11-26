@@ -13,4 +13,5 @@ nbproject/
 
 # ignore binary of shader
 shader
+phong
 frag.txt

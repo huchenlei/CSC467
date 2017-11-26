@@ -8,9 +8,15 @@ if ($#ARGV < 0) {
 
 my $test_num = $ARGV[0];
 my $demo_path = "./Demos/Demo$test_num";
+
+my %binary_name = (
+    "1" => "shader",
+    "2" => "phong",
+);
+
 `make`;
-`./compiler467 -Dx $demo_path/shader.frag -O $demo_path/frag.txt`;
+print `./compiler467 -Dx $demo_path/$binary_name{$test_num}.frag -O $demo_path/frag.txt`;
 
 chdir $demo_path;
 `make`;
-print `./shader frag.txt`;
+print `./$binary_name{$test_num} frag.txt`;

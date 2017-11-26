@@ -3,13 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "codegen.h"
 #include "ast.h"
+#include "codegen.h"
 #include "common.h"
 #include "parser.tab.h"
-
-#define MAX_INS_LEN 256
-#define MAX_VAR_LEN 32
 
 #define ZERO_VEC "{0.0, 0.0, 0.0, 0.0}"
 #define ONE_VEC "{1.0, 1.0, 1.0, 1.0}"
@@ -70,7 +67,7 @@ void to_arb_post(node* ast, int depth) {
         case BOOL_NODE:
         case FUNCTION_NODE:
         case CONSTRUCTOR_NODE:
-            ast->temp_reg = assign_temp_reg();
+            ast->reg_name = assign_temp_reg();
             break;
         default:
             // Do nothing
@@ -83,17 +80,17 @@ void to_arb_post(node* ast, int depth) {
 }
 
 void handle_math_expr(node* ast) {
-    char* out = ast->temp_reg;
+    char* out = ast->reg_name;
     switch (ast->kind) {
         case UNARY_EXPRESION_NODE:
             switch (ast->unary_expr.op) {
                 case UMINUS:
                     append_inst(SUB, out, ZERO_VEC,
-                                ast->unary_expr.right->temp_reg, NULL);
+                                ast->unary_expr.right->reg_name, "");
                     break;
                 case '!':
                     append_inst(SUB, out, BOOL_TRUE,
-                                ast->unary_expr.right->temp_reg, NULL);
+                                ast->unary_expr.right->reg_name, "");
                     break;
                 default:
                     assert(0);
@@ -101,33 +98,33 @@ void handle_math_expr(node* ast) {
             }
             break;
         case BINARY_EXPRESSION_NODE: {
-            char* opr1 = ast->binary_expr.left->temp_reg;
-            char* opr2 = ast->binary_expr.right->temp_reg;
+            char* opr1 = ast->binary_expr.left->reg_name;
+            char* opr2 = ast->binary_expr.right->reg_name;
             switch (ast->binary_expr.op) {
                 case '*':
-                    append_inst(MUL, out, opr1, opr2, NULL);
+                    append_inst(MUL, out, opr1, opr2, "");
                     break;
                 case '/':
                     // take reciprocate of opr2 and multiply with
                     // opr1
-                    append_inst(RCP, out, opr2, NULL, NULL);
-                    append_inst(MUL, out, opr1, out, NULL);
+                    append_inst(RCP, out, opr2, "", "");
+                    append_inst(MUL, out, opr1, out, "");
                     // if both operand is int type, convert result to int
                     if (is_in_set(INT_TYPES,
                                   ast->binary_expr.right->type_code) &&
                         is_in_set(INT_TYPES,
                                   ast->binary_expr.left->type_code)) {
-                        append_inst(FLR, out, out, NULL, NULL);
+                        append_inst(FLR, out, out, "", "");
                     }
                     break;
                 case '^':
-                    append_inst(POW, out, opr1, opr2, NULL);
+                    append_inst(POW, out, opr1, opr2, "");
                     break;
                 case GEQ:
                     // opr1 >= opr2
                     // !(opr1 < opr2)
                     // !(opr1 - opr2 < 0)
-                    append_inst(SUB, out, opr1, opr2, NULL);
+                    append_inst(SUB, out, opr1, opr2, "");
                     append_inst(CMP, out, out, BOOL_FALSE, BOOL_TRUE);
                     break;
                 case LEQ:
@@ -135,55 +132,55 @@ void handle_math_expr(node* ast) {
                     // !(opr1 > opr2)
                     // !(opr1 - opr2 > 0)
                     // !(opr2 - opr1 < 0)
-                    append_inst(SUB, out, opr2, opr1, NULL);
+                    append_inst(SUB, out, opr2, opr1, "");
                     append_inst(CMP, out, out, BOOL_FALSE, BOOL_TRUE);
                     break;
                 case '<':
                     // opr1 < opr2
                     // opr1 - opr2 < 0
-                    append_inst(SUB, out, opr1, opr2, NULL);
+                    append_inst(SUB, out, opr1, opr2, "");
                     append_inst(CMP, out, out, BOOL_TRUE, BOOL_FALSE);
                     break;
                 case '>':
                     // opr1 > opr2
                     // opr2 - opr1 < 0
-                    append_inst(SUB, out, opr2, opr1, NULL);
+                    append_inst(SUB, out, opr2, opr1, "");
                     append_inst(CMP, out, out, BOOL_TRUE, BOOL_FALSE);
                     break;
                 case '+':
-                    append_inst(ADD, out, opr1, opr2, NULL);
+                    append_inst(ADD, out, opr1, opr2, "");
                     break;
                 case '-':
-                    append_inst(SUB, out, opr1, opr2, NULL);
+                    append_inst(SUB, out, opr1, opr2, "");
                     break;
                 case EQ: {
                     // (opr1 >= opr2) && (opr2 <= opr1)
                     char* temp = assign_temp_reg();
-                    append_inst(SUB, out, opr1, opr2, NULL);
-                    append_inst(SUB, temp, opr1, opr2, NULL);
+                    append_inst(SUB, out, opr1, opr2, "");
+                    append_inst(SUB, temp, opr1, opr2, "");
                     append_inst(CMP, out, out, BOOL_FALSE, BOOL_TRUE);
                     append_inst(CMP, temp, temp, BOOL_FALSE, BOOL_TRUE);
-                    append_inst(MUL, out, temp, out, NULL);
+                    append_inst(MUL, out, temp, out, "");
                     break;
                 }
                 case NEQ: {
                     // (opr1 < opr2) || (opr1 > opr2)
                     char* temp = assign_temp_reg();
-                    append_inst(SUB, out, opr1, opr2, NULL);
-                    append_inst(SUB, temp, opr1, opr2, NULL);
+                    append_inst(SUB, out, opr1, opr2, "");
+                    append_inst(SUB, temp, opr1, opr2, "");
                     append_inst(CMP, out, out, BOOL_TRUE, BOOL_FALSE);
                     append_inst(CMP, temp, temp, BOOL_TRUE, BOOL_FALSE);
-                    append_inst(ADD, out, out, temp, NULL);
+                    append_inst(ADD, out, out, temp, "");
                     break;
                 }
                 case AND:
                     // opr1 * opr2
-                    append_inst(MUL, out, opr1, opr2, NULL);
+                    append_inst(MUL, out, opr1, opr2, "");
                 case OR:
                     // opr2 + opr1 - (opr1 * opr2)
-                    append_inst(MUL, out, opr1, opr2, NULL);
-                    append_inst(ADD, out, opr1, out, NULL);
-                    append_inst(ADD, out, opr2, out, NULL);
+                    append_inst(MUL, out, opr1, opr2, "");
+                    append_inst(ADD, out, opr1, out, "");
+                    append_inst(ADD, out, opr2, out, "");
                 default:
                     assert(0);
                     break;
@@ -202,21 +199,21 @@ void handle_imm_val(node* ast) {
             float val = (float)ast->literal_expr.int_val;
             snprintf(literal_expr, MAX_INS_LEN, "{%.1f, %.1f, %.1f, %.1f}", val,
                      val, val, val);
-            append_inst(MOV, ast->temp_reg, literal_expr, NULL, NULL);
+            append_inst(MOV, ast->reg_name, literal_expr, "", "");
             break;
         }
         case FLOAT_NODE: {
             float val = ast->literal_expr.float_val;
             snprintf(literal_expr, MAX_INS_LEN, "{%.1f, %.1f, %.1f, %.1f}", val,
                      val, val, val);
-            append_inst(MOV, ast->temp_reg, literal_expr, NULL, NULL);
+            append_inst(MOV, ast->reg_name, literal_expr, "", "");
             break;
         }
         case BOOL_NODE:
             if (ast->literal_expr.int_val == 1) {
-                append_inst(MOV, ast->temp_reg, BOOL_TRUE, NULL, NULL);
+                append_inst(MOV, ast->reg_name, BOOL_TRUE, "", "");
             } else if (ast->literal_expr.int_val == 0) {
-                append_inst(MOV, ast->temp_reg, BOOL_FALSE, NULL, NULL);
+                append_inst(MOV, ast->reg_name, BOOL_FALSE, "", "");
             } else {
                 assert(0);
             }
@@ -229,23 +226,34 @@ void handle_imm_val(node* ast) {
 void handle_function(node* ast) {
     if (ast->kind != FUNCTION_NODE) return;
     node* argument_node = ast->func_expr.args;
-    char* out = ast->temp_reg;
-    char* arg1 = argument_node->argument.expr->temp_reg;
+    char* args[2];
+    char* out = ast->reg_name;
+
+    int arg_size = argument_node->argument.arg_size;
+    int i = 0;
+    while (i < arg_size) {
+        assert(argument_node != NULL);
+        node* cur_expr = argument_node->argument.expr;
+        if (cur_expr != NULL) {
+            args[i] = cur_expr->reg_name;
+            i++;
+        }
+        argument_node = argument_node->argument.arguments;
+    }
+
     switch (ast->func_expr.func_name) {
         case 0: {  // dp3
             assert(argument_node->argument.arg_size == 2);
-            char* arg2 =
-                argument_node->argument.arguments->argument.expr->temp_reg;
-            append_inst(DP3, out, arg1, arg2, NULL);
+            append_inst(DP3, out, args[0], args[1], "");
             break;
         }
         case 1:  // lit
             assert(argument_node->argument.arg_size == 1);
-            append_inst(LIT, out, arg1, NULL, NULL);
+            append_inst(LIT, out, args[0], "", "");
             break;
         case 2:  // rsq
             assert(argument_node->argument.arg_size == 1);
-            append_inst(RSQ, out, arg1, NULL, NULL);
+            append_inst(RSQ, out, args[0], "", "");
             break;
         default:
             assert(0);
@@ -253,20 +261,24 @@ void handle_function(node* ast) {
     }
 }
 
-
 static const char* REG_INDEX[] = {"x", "y", "z", "w"};
 void handle_constructor(node* ast) {
     if (ast->kind != CONSTRUCTOR_NODE) return;
-    char* out = ast->temp_reg;
+    char* out = ast->reg_name;
     node* argument_node = ast->binary_node.right;
 
     int arg_size = argument_node->argument.arg_size;
     assert(arg_size <= 4 && arg_size > 0);
     char var[MAX_VAR_LEN];
-    for (size_t i = 0; i < arg_size; i++) {
+    int i = 0;
+    while (i < arg_size) {
+        assert(argument_node != NULL);
         node* cur_expr = argument_node->argument.expr;
-        snprintf(var, MAX_VAR_LEN, "%s.%s", out, REG_INDEX[i]);
-        append_inst(MOV, var, cur_expr->temp_reg, NULL, NULL);
+        if (cur_expr != NULL) {
+            snprintf(var, MAX_VAR_LEN, "%s.%s", out, REG_INDEX[i]);
+            append_inst(MOV, var, cur_expr->reg_name, "", "");
+            i++;
+        }
         argument_node = argument_node->argument.arguments;
     }
 }
@@ -283,7 +295,7 @@ void print_insts(inst* instruction) {
             snprintf(ins_str, MAX_INS_LEN, "%s %s", INST_STRING[cur_ins->code],
                      cur_ins->out);
             for (size_t i = 0; i < 3; i++) {
-                if (cur_ins->in[i] == NULL) break;
+                if (strcmp(cur_ins->in[i], "") == 0) break;
                 strcat(ins_str, ", ");
                 strcat(ins_str, cur_ins->in[i]);
             }
@@ -298,10 +310,16 @@ void print_insts(inst* instruction) {
 void append_inst(inst_code c, char* out, char* in1, char* in2, char* in3) {
     inst* ins = (inst*)malloc(sizeof(inst));
     ins->code = c;
-    ins->out = out;
-    ins->in[0] = in1;
-    ins->in[1] = in2;
-    ins->in[2] = in3;
+    assert(out != NULL);
+    assert(in1 != NULL);
+    assert(in2 != NULL);
+    assert(in3 != NULL);
+
+    strncpy(ins->out, out, MAX_VAR_LEN);
+    strncpy(ins->in[0], in1, MAX_VAR_LEN);
+    strncpy(ins->in[1], in2, MAX_VAR_LEN);
+    strncpy(ins->in[2], in3, MAX_VAR_LEN);
+
     ins->_next = NULL;
 
     if (tail == NULL) {
@@ -326,6 +344,6 @@ char* assign_temp_reg() {
     assert(temp_reg_count + 1 < SIZE_MAX);
     char* temp_reg = (char*)calloc(MAX_VAR_LEN, sizeof(char));
     snprintf(temp_reg, MAX_VAR_LEN, "tempVar%lu", temp_reg_count++);
-    append_inst(TEMP, temp_reg, NULL, NULL, NULL);
+    append_inst(TEMP, temp_reg, "", "", "");
     return temp_reg;
 }

@@ -47,13 +47,16 @@
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
 
+#define MAX_INS_LEN 256
+#define MAX_VAR_LEN 32
+
 typedef enum { FOREACH_INST(GENERATE_ENUM) } inst_code;
 static const char* INST_STRING[] = {FOREACH_INST(GENERATE_STRING)};
 
 typedef struct _inst {
     inst_code code;
-    char* out;
-    char* in[3]; // ARB has at most 3 inputs
+    char out[MAX_VAR_LEN];
+    char in[3][MAX_VAR_LEN]; // ARB has at most 3 inputs
 
     // Linked list structure to loop over all insts
     struct _inst* _next;

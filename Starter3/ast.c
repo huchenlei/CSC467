@@ -127,8 +127,8 @@ void ast_post_free(node *ast, int depth){
     if (ast->kind == VAR_NODE){
         free(ast->variable.var_name);
     }
-    if (ast->temp_reg != NULL) {
-        free(ast->temp_reg);
+    if (ast->reg_name != NULL) {
+        free(ast->reg_name);
     }
     free(ast);
 }

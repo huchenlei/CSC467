@@ -60,7 +60,7 @@ struct node_ {
   int is_const;
 
   // Arb stuff
-  char* temp_reg; // name of temporaty reg to store intermediant values in arb
+  char* reg_name; // name of temporaty reg to store intermediant values in arb
   int scope_depth; // Used to generate unique var name in arb
 
   union {
