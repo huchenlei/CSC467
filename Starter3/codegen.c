@@ -26,6 +26,8 @@ void handle_math_expr(node* ast);
 void handle_imm_val(node* ast);
 void handle_function(node* ast);
 void handle_constructor(node* ast);
+void handle_var_expr(node* ast);
+
 // Append a new instruction at the end of linked list
 void append_inst(inst_code c, char* out, char* in1, char* in2, char* in3);
 // return the temp reg name
@@ -77,6 +79,7 @@ void to_arb_post(node* ast, int depth) {
     handle_imm_val(ast);
     handle_function(ast);
     handle_constructor(ast);
+    handle_var_expr(ast);
 }
 
 void handle_math_expr(node* ast) {
@@ -243,16 +246,16 @@ void handle_function(node* ast) {
 
     switch (ast->func_expr.func_name) {
         case 0: {  // dp3
-            assert(argument_node->argument.arg_size == 2);
+            assert(arg_size == 2);
             append_inst(DP3, out, args[0], args[1], "");
             break;
         }
         case 1:  // lit
-            assert(argument_node->argument.arg_size == 1);
+            assert(arg_size == 1);
             append_inst(LIT, out, args[0], "", "");
             break;
         case 2:  // rsq
-            assert(argument_node->argument.arg_size == 1);
+            assert(arg_size == 1);
             append_inst(RSQ, out, args[0], "", "");
             break;
         default:
@@ -280,6 +283,52 @@ void handle_constructor(node* ast) {
             i++;
         }
         argument_node = argument_node->argument.arguments;
+    }
+}
+
+#define STRING_MAP(PATTERN, TO)           \
+    if (strcmp(PATTERN, var_name) == 0) { \
+        strcpy(reg_name, TO);             \
+        goto var_expr_end_mapping;        \
+    }
+void handle_var_expr(node* ast) {
+    switch (ast->kind) {
+        case VAR_NODE: {
+            char* var_name = ast->variable.var_name;
+            assert(var_name != NULL);
+            char* reg_name = (char*)calloc(MAX_VAR_LEN, sizeof(char));
+            STRING_MAP("gl_FragColor", "result.color");
+            STRING_MAP("gl_FragDepth", "result.depth");
+            STRING_MAP("gl_FragCoord", "fragment.position");
+            STRING_MAP("gl_TexCoord", "fragment.texcoord");
+            STRING_MAP("gl_Color", "fragment.color");
+            STRING_MAP("gl_Secondary", "fragment.color.secondary");
+            STRING_MAP("gl_gl_FogFragCoord", "fragment.fogcoord");
+            STRING_MAP("gl_Light_Half", "state.light[0].half");
+            STRING_MAP("gl_Light_Ambient", "state.lightmodel.ambient");
+            STRING_MAP("gl_Material_Shininess", "state.material.shininess");
+            STRING_MAP("env1", "program.env[1]");
+            STRING_MAP("env2", "program.env[2]");
+            STRING_MAP("end3", "program.env[3]");
+            // Not system variable
+            // Use var_[DEPTH] as unique reg name
+            snprintf(reg_name, MAX_VAR_LEN, "%s_%d", var_name,
+                     ast->scope_depth);
+        var_expr_end_mapping:
+            if (ast->variable.is_array) {
+                strcat(reg_name, ".");
+                strcat(reg_name, REG_INDEX[ast->variable.index]);
+            }
+            ast->reg_name = reg_name;
+            break;
+        }
+        case VAR_EXPRESSION_NODE:
+            assert(ast->reg_name == NULL);
+            ast->reg_name = (char*)calloc(MAX_VAR_LEN, sizeof(char));
+            strcpy(ast->reg_name, ast->unary_node.right->reg_name);
+            break;
+        default:
+            return;
     }
 }
 

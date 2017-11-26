@@ -523,7 +523,7 @@ void ast_variable_check(node* ast) {
         // Index check
         if (ste->vec_size == 1) {
             fprintf(errorFile,
-                    "%d: Scala variable %s can not be accessed with index\n",
+                    "%d: Scala variable '%s' can not be accessed with index\n",
                     ast->line, var_name);
             goto ast_variable_check_error;
         }
