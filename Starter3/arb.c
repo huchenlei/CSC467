@@ -1,8 +1,8 @@
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include "arb.h"
 #include "ast.h"
 #include "common.h"
@@ -207,9 +207,14 @@ void print_insts(inst* instruction) {
         if (cur_ins->code == TEMP) {
             snprintf(ins_str, MAX_INS_LEN, "TEMP %s;", cur_ins->out);
         } else {
+            snprintf(ins_str, MAX_INS_LEN, "%s %s", INST_STRING[cur_ins->code],
+                     cur_ins->out);
             for (size_t i = 0; i < 3; i++) {
-                // TODO
+                if (cur_ins->in[i] == NULL) break;
+                strcat(ins_str, ", ");
+                strcat(ins_str, cur_ins->in[i]);
             }
+            strcat(ins_str, ";");
         }
         cur_ins = cur_ins->_next;
     }
