@@ -13,7 +13,7 @@ node *ast = NULL;
 
 node *ast_allocate(node_kind kind, int yyline, ...) {
   va_list args;
-  
+
   // make the node
   node *ast = (node *) malloc(sizeof(node));
   memset(ast, 0, sizeof *ast);
@@ -22,10 +22,10 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
   ast->type_code = -1;
   ast->vec_size = -1;
   ast->is_const = 0;
-  va_start(args, yyline); 
+  va_start(args, yyline);
   switch(kind) {
-  
-	
+
+
   // type
   case TYPE_NODE:
 	ast->type_code = va_arg(args, int);
@@ -46,7 +46,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
   case STATEMENT_NODE:
   case ASSIGNMENT_NODE:
 	ast->binary_node.left = va_arg(args, node *);
-	ast->binary_node.right = va_arg(args, node *); 
+	ast->binary_node.right = va_arg(args, node *);
 	break;
   case ARGUMENTS_NODE:
         ast->argument.arguments = va_arg(args, node *);
@@ -61,7 +61,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 
   case FUNCTION_NODE:
 	ast->func_expr.func_name = va_arg(args, int);
-	ast->func_expr.args = va_arg(args, node *); 
+	ast->func_expr.args = va_arg(args, node *);
 	break;
 
   case UNARY_EXPRESION_NODE:
@@ -74,7 +74,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
     ast->binary_expr.left = va_arg(args, node *);
     ast->binary_expr.right = va_arg(args, node *);
     break;
-  
+
   case NESTED_EXPRESSION_NODE:
   case VAR_EXPRESSION_NODE:
   case NESTED_SCOPE_NODE:
@@ -87,7 +87,7 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
         ast->is_const = 1;
 	ast->literal_expr.int_val = va_arg(args, int);
 	break;
-	
+
   case INT_NODE:
 	ast->type_code = INT_T;
         ast->vec_size = 1;
@@ -126,6 +126,9 @@ void ast_post_free(node *ast, int depth){
     }
     if (ast->kind == VAR_NODE){
         free(ast->variable.var_name);
+    }
+    if (ast->temp_reg != NULL) {
+        free(ast->temp_reg);
     }
     free(ast);
 }
@@ -267,7 +270,7 @@ void ast_pre_print(node *ast, int depth){
 
         case ASSIGNMENT_NODE:
             print_indent(depth, 1, 1);
-            fprintf(dumpFile, "ASSIGN %s", get_type_name(ast)); 
+            fprintf(dumpFile, "ASSIGN %s", get_type_name(ast));
             break;
 
         case IF_STATEMENT_NODE:
@@ -293,7 +296,7 @@ void ast_pre_print(node *ast, int depth){
                 fprintf(dumpFile, "INDEX %s %s %d",
                         get_type_name(ast),
                         ast->variable.var_name,
-                        ast->variable.index); 
+                        ast->variable.index);
             } else {
                 fprintf(dumpFile, " %s", ast->variable.var_name);
             }
@@ -309,11 +312,11 @@ void ast_pre_print(node *ast, int depth){
         case FLOAT_NODE:
             fprintf(dumpFile, " %f", ast->literal_expr.float_val);
             break;
-            
+
         case VAR_EXPRESSION_NODE:
         case NESTED_EXPRESSION_NODE:
         case NESTED_SCOPE_NODE:
-        case TYPE_NODE: 
+        case TYPE_NODE:
         case ARGUMENTS_NODE:
             //print nothing for those nodes
             break;
@@ -324,7 +327,7 @@ void ast_pre_print(node *ast, int depth){
         case FUNCTION_NODE:
             print_indent(depth, 1, 1);
             fprintf(dumpFile, "CALL %s", get_func_name(ast->func_expr.func_name));
-            break;    
+            break;
         default:
             print_indent(depth, 1, 1);
             break;
@@ -352,7 +355,7 @@ void ast_post_print(node *ast, int depth) {
             break;
         default: print_indent(depth, 0, 1);
     }
-	
+
 }
 
 
@@ -360,7 +363,7 @@ void ast_post_print(node *ast, int depth) {
 void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_func)(node*,int)){
 	if (!ast) return;
 	if (pre_func) pre_func(ast, depth);
-	
+
 	switch(ast->kind){
   		case ARGUMENTS_NODE:
                     ast_visit(ast->argument.arguments, depth, pre_func, post_func);
@@ -391,7 +394,7 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 		case FUNCTION_NODE:
 			ast_visit(ast->func_expr.args, depth+1, pre_func, post_func);
 			break;
-		
+
 		case UNARY_EXPRESION_NODE:
 			ast_visit(ast->unary_expr.right, depth+1, pre_func, post_func);
 			break;
@@ -400,19 +403,19 @@ void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_fun
 			ast_visit(ast->binary_expr.left, depth+1, pre_func, post_func);
 			ast_visit(ast->binary_expr.right, depth+1, pre_func, post_func);
 			break;
-		
+
   		case NESTED_EXPRESSION_NODE:
   		case VAR_EXPRESSION_NODE:
   		case NESTED_SCOPE_NODE:
 			ast_visit(ast->unary_node.right, depth, pre_func, post_func);
 			break;
-		
+
 		default:
 			break;
-		
+
 	}
-	
+
 	if (post_func) post_func(ast, depth);
 
-  
+
 }

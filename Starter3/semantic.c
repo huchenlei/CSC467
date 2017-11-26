@@ -579,6 +579,9 @@ void ast_pre_check(node* ast, int depth) {
 }
 
 void ast_post_check(node* ast, int depth) {
+    // Initialize scope depth field for all ast nodes
+    ast->scope_depth = (int)scope_depth();
+
     ast_operator_check(ast);
     ast_condition_check(ast);
     ast_assignment_check(ast);

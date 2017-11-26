@@ -52,10 +52,17 @@ struct node_ {
 
   // an example of tagging each node with a type
   node_kind kind;
+
+  // Semantic stuff
   int line;
   int type_code;
   int vec_size;
   int is_const;
+
+  // Arb stuff
+  char* temp_reg; // name of temporaty reg to store intermediant values in arb
+  int scope_depth; // Used to generate unique var name in arb
+
   union {
     struct {
       // declarations?
@@ -112,13 +119,12 @@ struct node_ {
       node *inside_else;
 
     } if_statement;
-    
+
     struct {
         node *arguments;
         node *expr;
         int arg_size;
     } argument;
-    // etc.
   };
 };
 

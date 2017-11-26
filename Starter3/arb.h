@@ -6,7 +6,10 @@
 /**
     Convert ast node to corresponding arb assembly
 */
+// `TEMP` is NOT part of instruction set
+// Only used to declare temporary var
 #define FOREACH_INST(INST) \
+    INST(TEMP)             \
     INST(ABS)              \
     INST(ADD)              \
     INST(CMP)              \
@@ -48,10 +51,9 @@ typedef enum { FOREACH_INST(GENERATE_ENUM) } inst_code;
 static const char* INST_STRING[] = {FOREACH_INST(GENERATE_STRING)};
 
 typedef struct _inst {
-    int is_declaration;  // bool
     inst_code code;
-    char *in1, in2, in3;  // ARB has at most 3 inputs
     char* out;
+    char* in[3]; // ARB has at most 3 inputs
 
     // Linked list structure to loop over all insts
     struct _inst* _next;
@@ -62,5 +64,8 @@ typedef struct _inst {
 inst* to_arb(node* root);
 // output to outputFile
 void print_insts(inst* instruction);
+// Free all memory used by insts
+// Need to be called from outside
+void clear_all_inst(inst* head);
 
 #endif
