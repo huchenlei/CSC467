@@ -63,6 +63,9 @@ void to_arb_post(node* ast, int depth) {
         // All nodes that stores temporary expression values
         case UNARY_EXPRESION_NODE:
         case BINARY_EXPRESSION_NODE:
+        case INT_NODE:
+        case FLOAT_NODE:
+        case BOOL_NODE:
             ast->temp_reg = assign_temp_reg();
             break;
         default:
@@ -186,12 +189,24 @@ void handle_math_expr(node* ast) {
 }
 
 void handle_imm_val(node* ast) {
+    char literal_expr[MAX_INS_LEN];
     switch (ast->kind) {
         case INT_NODE:
+            snprintf(literal_expr, MAX_INS_LEN, "{%.1f, 0.0, 0.0, 0.0}",
+                     (float)ast->literal_expr.int_val);
+            append_inst(MOV, ast->temp_reg, literal_expr, NULL, NULL);
             break;
         case FLOAT_NODE:
+            snprintf(literal_expr, MAX_INS_LEN, "{%.1f, 0.0, 0.0, 0.0}",
+                     ast->literal_expr.float_val);
+            append_inst(MOV, ast->temp_reg, literal_expr, NULL, NULL);
             break;
         case BOOL_NODE:
+            if (ast->literal_expr.int_val == 1) {
+                append_inst(MOV, ast->temp_reg, BOOL_TRUE, NULL, NULL);
+            } else {
+                append_inst(MOV, ast->temp_reg, BOOL_FALSE, NULL, NULL);
+            }
             break;
         default:
             return;
@@ -205,7 +220,7 @@ void print_insts(inst* instruction) {
 
     while (cur_ins != NULL) {
         if (cur_ins->code == TEMP) {
-            snprintf(ins_str, MAX_INS_LEN, "TEMP %s;", cur_ins->out);
+            snprintf(ins_str, MAX_INS_LEN, "TEMP %s;\n", cur_ins->out);
         } else {
             snprintf(ins_str, MAX_INS_LEN, "%s %s", INST_STRING[cur_ins->code],
                      cur_ins->out);
@@ -214,7 +229,7 @@ void print_insts(inst* instruction) {
                 strcat(ins_str, ", ");
                 strcat(ins_str, cur_ins->in[i]);
             }
-            strcat(ins_str, ";");
+            strcat(ins_str, ";\n");
         }
         cur_ins = cur_ins->_next;
     }
