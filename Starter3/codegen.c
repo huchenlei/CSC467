@@ -278,7 +278,7 @@ void print_insts(inst* instruction) {
 
     while (cur_ins != NULL) {
         if (cur_ins->code == TEMP) {
-            snprintf(ins_str, MAX_INS_LEN, "TEMP %s;\n", cur_ins->out);
+            snprintf(ins_str, MAX_INS_LEN, "TEMP %s;", cur_ins->out);
         } else {
             snprintf(ins_str, MAX_INS_LEN, "%s %s", INST_STRING[cur_ins->code],
                      cur_ins->out);
@@ -287,9 +287,10 @@ void print_insts(inst* instruction) {
                 strcat(ins_str, ", ");
                 strcat(ins_str, cur_ins->in[i]);
             }
-            strcat(ins_str, ";\n");
+            strcat(ins_str, ";");
         }
         cur_ins = cur_ins->_next;
+        fprintf(outputFile, "%s\n", ins_str);
     }
     fprintf(outputFile, "END\n");
 }

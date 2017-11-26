@@ -354,9 +354,9 @@ void ast_simple_expr_eval(node* ast) {
                         ast->line);
             }
             if (ste->_write_only) {
-                errorOccurred = 1;
+                // errorOccurred = 1;
                 fprintf(errorFile,
-                        "%d: write only variable '%s' can not be used in "
+                        "%d: [WARNING] write only variable '%s' can not be used in "
                         "expression\n",
                         ast->line, ste->var_name);
             }

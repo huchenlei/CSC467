@@ -10,3 +10,7 @@ compiler467
 
 # ignore netbeans config folder
 nbproject/
+
+# ignore binary of shader
+shader
+frag.txt
