@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "arb.h"
+#include "codegen.h"
 #include "ast.h"
 #include "common.h"
 #include "parser.tab.h"
@@ -27,6 +27,8 @@ void to_arb_pre(node* ast, int depth);
 void to_arb_post(node* ast, int depth);
 void handle_math_expr(node* ast);
 void handle_imm_val(node* ast);
+void handle_function(node* ast);
+void handle_constructor(node* ast);
 // Append a new instruction at the end of linked list
 void append_inst(inst_code c, char* out, char* in1, char* in2, char* in3);
 // return the temp reg name
@@ -66,6 +68,8 @@ void to_arb_post(node* ast, int depth) {
         case INT_NODE:
         case FLOAT_NODE:
         case BOOL_NODE:
+        case FUNCTION_NODE:
+        case CONSTRUCTOR_NODE:
             ast->temp_reg = assign_temp_reg();
             break;
         default:
@@ -73,6 +77,9 @@ void to_arb_post(node* ast, int depth) {
             break;
     }
     handle_math_expr(ast);
+    handle_imm_val(ast);
+    handle_function(ast);
+    handle_constructor(ast);
 }
 
 void handle_math_expr(node* ast) {
@@ -191,25 +198,76 @@ void handle_math_expr(node* ast) {
 void handle_imm_val(node* ast) {
     char literal_expr[MAX_INS_LEN];
     switch (ast->kind) {
-        case INT_NODE:
-            snprintf(literal_expr, MAX_INS_LEN, "{%.1f, 0.0, 0.0, 0.0}",
-                     (float)ast->literal_expr.int_val);
+        case INT_NODE: {
+            float val = (float)ast->literal_expr.int_val;
+            snprintf(literal_expr, MAX_INS_LEN, "{%.1f, %.1f, %.1f, %.1f}", val,
+                     val, val, val);
             append_inst(MOV, ast->temp_reg, literal_expr, NULL, NULL);
             break;
-        case FLOAT_NODE:
-            snprintf(literal_expr, MAX_INS_LEN, "{%.1f, 0.0, 0.0, 0.0}",
-                     ast->literal_expr.float_val);
+        }
+        case FLOAT_NODE: {
+            float val = ast->literal_expr.float_val;
+            snprintf(literal_expr, MAX_INS_LEN, "{%.1f, %.1f, %.1f, %.1f}", val,
+                     val, val, val);
             append_inst(MOV, ast->temp_reg, literal_expr, NULL, NULL);
             break;
+        }
         case BOOL_NODE:
             if (ast->literal_expr.int_val == 1) {
                 append_inst(MOV, ast->temp_reg, BOOL_TRUE, NULL, NULL);
-            } else {
+            } else if (ast->literal_expr.int_val == 0) {
                 append_inst(MOV, ast->temp_reg, BOOL_FALSE, NULL, NULL);
+            } else {
+                assert(0);
             }
             break;
         default:
             return;
+    }
+}
+
+void handle_function(node* ast) {
+    if (ast->kind != FUNCTION_NODE) return;
+    node* argument_node = ast->func_expr.args;
+    char* out = ast->temp_reg;
+    char* arg1 = argument_node->argument.expr->temp_reg;
+    switch (ast->func_expr.func_name) {
+        case 0: {  // dp3
+            assert(argument_node->argument.arg_size == 2);
+            char* arg2 =
+                argument_node->argument.arguments->argument.expr->temp_reg;
+            append_inst(DP3, out, arg1, arg2, NULL);
+            break;
+        }
+        case 1:  // lit
+            assert(argument_node->argument.arg_size == 1);
+            append_inst(LIT, out, arg1, NULL, NULL);
+            break;
+        case 2:  // rsq
+            assert(argument_node->argument.arg_size == 1);
+            append_inst(RSQ, out, arg1, NULL, NULL);
+            break;
+        default:
+            assert(0);
+            break;
+    }
+}
+
+
+static const char* REG_INDEX[] = {"x", "y", "z", "w"};
+void handle_constructor(node* ast) {
+    if (ast->kind != CONSTRUCTOR_NODE) return;
+    char* out = ast->temp_reg;
+    node* argument_node = ast->binary_node.right;
+
+    int arg_size = argument_node->argument.arg_size;
+    assert(arg_size <= 4 && arg_size > 0);
+    char var[MAX_VAR_LEN];
+    for (size_t i = 0; i < arg_size; i++) {
+        node* cur_expr = argument_node->argument.expr;
+        snprintf(var, MAX_VAR_LEN, "%s.%s", out, REG_INDEX[i]);
+        append_inst(MOV, var, cur_expr->temp_reg, NULL, NULL);
+        argument_node = argument_node->argument.arguments;
     }
 }
 
