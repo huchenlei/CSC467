@@ -27,6 +27,8 @@ void handle_imm_val(node* ast);
 void handle_function(node* ast);
 void handle_constructor(node* ast);
 void handle_var_expr(node* ast);
+void handle_declaration(node* ast);
+void handle_assignment(node* ast);
 
 // Append a new instruction at the end of linked list
 void append_inst(inst_code c, char* out, char* in1, char* in2, char* in3);
@@ -80,6 +82,8 @@ void to_arb_post(node* ast, int depth) {
     handle_function(ast);
     handle_constructor(ast);
     handle_var_expr(ast);
+    handle_declaration(ast);
+    handle_assignment(ast);
 }
 
 void handle_math_expr(node* ast) {
@@ -330,6 +334,27 @@ void handle_var_expr(node* ast) {
         default:
             return;
     }
+}
+
+void handle_declaration(node* ast) {
+    if (ast->kind != DECLARATION_NODE) return;
+    char reg_name[MAX_VAR_LEN];
+    snprintf(reg_name, MAX_VAR_LEN, "%s_%d", ast->declaration.var_name,
+             ast->scope_depth);
+    append_inst(TEMP, reg_name, "", "", "");
+    if (ast->declaration.expr != NULL) {
+        append_inst(MOV, reg_name, ast->declaration.expr->reg_name, "", "");
+    }
+}
+
+void handle_assignment(node* ast) {
+    if (ast->kind != ASSIGNMENT_NODE) return;
+    node* dest = ast->binary_node.left;
+    node* src = ast->binary_node.right;
+
+    char* des_var = dest->reg_name;
+    char* src_var = src->reg_name;
+    append_inst(MOV, des_var, src_var, "", "");
 }
 
 void print_insts(inst* instruction) {
