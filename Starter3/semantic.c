@@ -4,7 +4,6 @@
 #include "parser.tab.h"
 #include "semantic.h"
 
-int cur_if_scope = 0;
 void ast_pre_check(node* ast, int depth);
 void ast_post_check(node* ast, int depth);
 
@@ -195,10 +194,6 @@ ast_operator_check_error:
 
 void ast_condition_check(node* ast) {
     if (ast->kind != IF_STATEMENT_NODE) return;
-    cur_if_scope--;
-#ifdef DEBUG
-    printf("leave if_scope %d\n", cur_if_scope);
-#endif
     int type_cond = ast->if_statement.condition->type_code;
     if (!is_in_set(scala_boolean_types, 3, type_cond)) {
         fprintf(errorFile,
@@ -581,11 +576,6 @@ void ast_pre_check(node* ast, int depth) {
             scope_predefine_symbol("env2", 1, VEC_T, 4, 0, 1, 0);
             scope_predefine_symbol("env3", 1, VEC_T, 4, 0, 1, 0);
         }
-    } else if (kind == IF_STATEMENT_NODE) {
-        cur_if_scope++;
-#ifdef DEBUG
-        printf("enter if_scope %d\n", cur_if_scope);
-#endif
     }
 }
 
