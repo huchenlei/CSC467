@@ -113,6 +113,8 @@ void ast_operator_check(node* ast) {
                         ast->line, get_op_str(op));
                 goto ast_operator_check_error;
             }
+            if (ast->vec_size == 1) ast->type_code = BOOL_T;
+            else ast->type_code = BVEC_T;
         }
     } else if (is_in_set(arithmetic_ops, 6, op) ||
                is_in_set(comparison_ops, 6, op)) {
@@ -125,6 +127,10 @@ void ast_operator_check(node* ast) {
                         ast->line, get_op_str(op), i + 1);
                 goto ast_operator_check_error;
             }
+        }
+        if (is_in_set(comparison_ops, 6, op)){
+            if (ast->vec_size == 1) ast->type_code = BOOL_T;
+            else ast->type_code = BVEC_T;
         }
         switch (op) {
             case '*':

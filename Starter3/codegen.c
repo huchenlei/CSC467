@@ -219,11 +219,13 @@ void handle_math_expr(node* ast) {
                 case AND:
                     // opr1 * opr2
                     append_inst(MUL, out, opr1, opr2, "");
+                    break;
                 case OR:
                     // opr2 + opr1 - (opr1 * opr2)
                     append_inst(MUL, out, opr1, opr2, "");
                     append_inst(ADD, out, opr1, out, "");
                     append_inst(ADD, out, opr2, out, "");
+                    break;
                 default:
                     assert(0);
                     break;
@@ -362,6 +364,7 @@ void handle_var_expr(node* ast) {
             ast->reg_name = reg_name;
             break;
         }
+        case NESTED_EXPRESSION_NODE:
         case VAR_EXPRESSION_NODE:
             assert(ast->reg_name == NULL);
             ast->reg_name = (char*)calloc(MAX_VAR_LEN, sizeof(char));
