@@ -71,6 +71,8 @@ struct node_ {
     int is_const;
 
     // Codegen stuff
+    char* condi_reg_name;
+    char* follow_condi_reg_name;
     char*
         reg_name;  // name of temporaty reg to store intermediant values in arb
     int scope_id;  // Used to generate unique var name in arb
@@ -145,6 +147,10 @@ void ast_free(node* ast);
 void ast_print(node* ast);
 void ast_pre_print(node* ast, int depth);
 void ast_post_print(node* ast, int depth);
+void ast_visit(node* ast, int depth, void (*pre_func)(node*, int),
+               void (*post_func)(node*, int), int is_codegen, 
+               void (*ex_func)(node*, int), void(*str_pass_func)(node*, char*), char*);
+
 void ast_visit(node* ast, int depth, void (*pre_func)(node*, int),
                void (*post_func)(node*, int));
 

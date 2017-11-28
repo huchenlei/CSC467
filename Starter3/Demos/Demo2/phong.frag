@@ -18,5 +18,17 @@
     coeff = lit(coeff);
     shade = shade + coeff[1] * fCol;
     shade = shade + coeff[2] * fCol;
+	if (false){
+		if (false){
+			shade = vec4(1.0,1.0,1.0,1.0);
+		}
+	}
+	else {
+		if (false){
+			shade = vec4(0.0,0.0,0.0,0.0);
+		}
+		
+	}
     gl_FragColor = shade;
+	
 }

@@ -25,6 +25,8 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
 
   ast->reg_name = NULL;
   ast->if_trace = NULL;
+  ast->condi_reg_name = NULL;
+  ast->follow_condi_reg_name = NULL;
   
   va_start(args, yyline);
   switch(kind) {
@@ -125,10 +127,10 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
   return ast;
 }
 void ast_post_free(node *ast, int depth){
-    if (ast->kind == DECLARATION_NODE){
+    if (ast->kind == DECLARATION_NODE && ast->declaration.var_name != NULL){
         free(ast->declaration.var_name);
     }
-    if (ast->kind == VAR_NODE){
+    if (ast->kind == VAR_NODE && ast->variable.var_name != NULL){
         free(ast->variable.var_name);
     }
     // Codegen
@@ -137,6 +139,12 @@ void ast_post_free(node *ast, int depth){
     }
     if (ast->if_trace != NULL) {
         free(ast->if_trace);
+    }
+    if (ast->condi_reg_name != NULL){
+        free(ast->condi_reg_name);
+    }
+    if (ast->follow_condi_reg_name != NULL){
+        free(ast->follow_condi_reg_name);
     }
 
     free(ast);
@@ -368,56 +376,65 @@ void ast_post_print(node *ast, int depth) {
 
 }
 
-
-
 void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_func)(node*,int)){
+    ast_visit(ast, depth, pre_func, post_func, 0, NULL, NULL, NULL);
+}
+
+void ast_visit(node * ast, int depth, void(*pre_func)(node*,int), void(*post_func)(node*,int), 
+        int is_codegen, void (*ex_func)(node*, int),void(*str_pass_func)(node*, char*), char* pass_str){
 	if (!ast) return;
 	if (pre_func) pre_func(ast, depth);
-
+        if (str_pass_func) str_pass_func(ast, pass_str);
 	switch(ast->kind){
   		case ARGUMENTS_NODE:
-                    ast_visit(ast->argument.arguments, depth, pre_func, post_func);
-                    ast_visit(ast->argument.expr, depth, pre_func, post_func);
+                    ast_visit(ast->argument.arguments, depth, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
+                    ast_visit(ast->argument.expr, depth, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
                     break;
   		case SCOPE_NODE:
   		case DECLARATIONS_NODE:
   		case STATEMENT_NODE:
 		case ASSIGNMENT_NODE:
-			ast_visit(ast->binary_node.left, depth+1, pre_func, post_func);
-			ast_visit(ast->binary_node.right, depth+1, pre_func, post_func);
+			ast_visit(ast->binary_node.left, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
+			ast_visit(ast->binary_node.right, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
 
 		case DECLARATION_NODE:
-                        ast_visit(ast->declaration.type_node, depth+1, pre_func, post_func);
-			ast_visit(ast->declaration.expr, depth+1, pre_func, post_func);
+                        ast_visit(ast->declaration.type_node, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
+			ast_visit(ast->declaration.expr, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
 
 		case IF_STATEMENT_NODE:
-			ast_visit(ast->if_statement.condition, depth+1, pre_func, post_func);
-			ast_visit(ast->if_statement.inside_if, depth+1, pre_func, post_func);
-			ast_visit(ast->if_statement.inside_else, depth+1, pre_func, post_func);
+			ast_visit(ast->if_statement.condition, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
+                        if (is_codegen && ex_func){
+                            ex_func(ast, 0);
+                        }
+			ast_visit(ast->if_statement.inside_if, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
+                        if (ast->if_statement.inside_else && is_codegen && ex_func){
+                            ex_func(ast, 1);
+                        }
+			ast_visit(ast->if_statement.inside_else, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
                 case CONSTRUCTOR_NODE:
-                        ast_visit(ast->binary_node.left, depth+1, pre_func, post_func);
-                        ast_visit(ast->binary_node.right, depth+1, pre_func, post_func);
+                        ast_visit(ast->binary_node.left, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
+                        ast_visit(ast->binary_node.right, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
 		case FUNCTION_NODE:
-			ast_visit(ast->func_expr.args, depth+1, pre_func, post_func);
+			ast_visit(ast->func_expr.args, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
 
 		case UNARY_EXPRESION_NODE:
-			ast_visit(ast->unary_expr.right, depth+1, pre_func, post_func);
+			ast_visit(ast->unary_expr.right, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
 
 		case BINARY_EXPRESSION_NODE:
-			ast_visit(ast->binary_expr.left, depth+1, pre_func, post_func);
-			ast_visit(ast->binary_expr.right, depth+1, pre_func, post_func);
+			ast_visit(ast->binary_expr.left, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
+			ast_visit(ast->binary_expr.right, depth+1, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
 
   		case NESTED_EXPRESSION_NODE:
   		case VAR_EXPRESSION_NODE:
   		case NESTED_SCOPE_NODE:
-			ast_visit(ast->unary_node.right, depth, pre_func, post_func);
+			ast_visit(ast->unary_node.right, depth, pre_func, post_func, is_codegen, ex_func, str_pass_func, pass_str);
 			break;
 
 		default:

@@ -20,6 +20,7 @@ inst* tail = NULL;
 size_t temp_reg_count = 0;
 
 // Helper functions
+void if_ex_func(node* ast, int depth);
 void to_arb_pre(node* ast, int depth);
 void to_arb_post(node* ast, int depth);
 void handle_math_expr(node* ast);
@@ -53,9 +54,42 @@ int is_in_set(const int* arr, int target) {
 }
 
 inst* to_arb(node* root) {
-    ast_visit(root, 0, &to_arb_pre, &to_arb_post);
+    ast_visit(root, 0, &to_arb_pre, &to_arb_post, 1, &if_ex_func, NULL, NULL);
     return head;
 }
+void if_ex_pre(node* ast, char* pass_str){
+    if (!ast->condi_reg_name){
+        ast->condi_reg_name = (char*)calloc(MAX_VAR_LEN, sizeof(char));
+            
+    }
+    strncpy(ast->condi_reg_name, pass_str, MAX_VAR_LEN);
+}
+
+void if_ex_func(node* ast, int is_else){
+    if (ast->kind != IF_STATEMENT_NODE) return;
+    char* condi_reg_name = ast->if_statement.condition->reg_name;
+    if (!is_else){
+        ast->follow_condi_reg_name = assign_temp_reg();
+        append_inst(MOV, ast->follow_condi_reg_name, condi_reg_name,"", "");
+        if (ast->condi_reg_name){
+            //for nested if, cur_condition = prev_condi && if_condi
+            append_inst(MUL, ast->follow_condi_reg_name, ast->condi_reg_name, ast->follow_condi_reg_name, "");
+        }
+        //only mark successors first time
+        ast_visit(ast->if_statement.inside_if, 0, NULL, NULL, 0, NULL, &if_ex_pre, ast->follow_condi_reg_name);
+        ast_visit(ast->if_statement.inside_else, 0, NULL, NULL, 0, NULL, &if_ex_pre, ast->follow_condi_reg_name);
+    }
+    else{
+        //compute !if_condi
+        append_inst(SUB, ast->follow_condi_reg_name, BOOL_TRUE, condi_reg_name, "");
+        if (ast->condi_reg_name){
+            //for nested if, cur_condition = prev_condi && !if_condi
+            append_inst(MUL, ast->follow_condi_reg_name, ast->condi_reg_name, ast->follow_condi_reg_name, "");
+        } 
+    }
+    
+}
+
 
 void to_arb_pre(node* ast, int depth) {
     // Do nothing
@@ -351,10 +385,20 @@ void handle_assignment(node* ast) {
     if (ast->kind != ASSIGNMENT_NODE) return;
     node* dest = ast->binary_node.left;
     node* src = ast->binary_node.right;
-
     char* des_var = dest->reg_name;
     char* src_var = src->reg_name;
-    append_inst(MOV, des_var, src_var, "", "");
+    if (ast->condi_reg_name){
+        char* temp = assign_temp_reg();
+        //(0-TRUE)<0
+        append_inst(SUB, temp, BOOL_FALSE, ast->condi_reg_name, "");
+        append_inst(CMP, des_var, temp, src_var, des_var);
+        free(temp);
+    }
+    else{
+        append_inst(MOV, des_var, src_var, "", "");
+    }
+    
+    
 }
 
 void print_insts(inst* instruction) {
