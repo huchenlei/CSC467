@@ -444,6 +444,7 @@ ast_assignment_check_error:
 
 void ast_declaration_check(node* ast) {
     if (ast->kind != DECLARATION_NODE) return;
+    st_entry* ste;
     const char* var_name = ast->declaration.var_name;
     assert(var_name != NULL);
     node* type_node = ast->declaration.type_node;
@@ -502,6 +503,11 @@ void ast_declaration_check(node* ast) {
             goto ast_declaration_check_error;
         }
     }
+    // codegen
+    ste = scope_find_local_entry(var_name);
+    assert(ste != NULL);
+    ast->scope_id = ste->scope_id;
+
     return;
 ast_declaration_check_error:
     errorOccurred = 1;
@@ -542,7 +548,8 @@ void ast_variable_check(node* ast) {
         ast->vec_size = ste->vec_size;
     }
     ast->is_const = ste->is_const;
-
+    // codegen
+    ast->scope_id = ste->scope_id;
     return;
 ast_variable_check_error:
     errorOccurred = 1;
@@ -583,9 +590,6 @@ void ast_pre_check(node* ast, int depth) {
 }
 
 void ast_post_check(node* ast, int depth) {
-    // Initialize scope depth field for all ast nodes
-    ast->scope_depth = (int)scope_depth();
-
     ast_operator_check(ast);
     ast_condition_check(ast);
     ast_assignment_check(ast);

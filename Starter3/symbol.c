@@ -5,6 +5,7 @@
 
 #include "symbol.h"
 
+size_t scope_id_count = 0;
 symbol_table* cur_scope = NULL;
 // Helper functions
 st_entry* scope_new_entry();
@@ -32,6 +33,7 @@ void scope_enter() {
     cur_scope->entry_num = 0;
     cur_scope->head = NULL;
     cur_scope->tail = NULL;
+    cur_scope->scope_id = scope_id_count++;
 }
 
 void scope_leave() {
@@ -114,6 +116,7 @@ int scope_declare_symbol(const char* name, int is_const, int type_code,
     new_st->type_code = type_code;
     new_st->vec_size = vec_size;
     strncpy(new_st->var_name, name, MAX_NAME_LEN);
+    new_st->scope_id = (int)cur_scope->scope_id;
 
     new_st->_next = NULL;
     new_st->_owner = cur_scope;

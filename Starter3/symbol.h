@@ -17,6 +17,7 @@
 struct _st_entry;
 
 struct _st {
+    size_t scope_id;
     size_t depth;
     size_t entry_num;
     size_t max_entry;
@@ -32,6 +33,9 @@ struct _st_entry {
     int has_init;
     int type_code;
     int vec_size;
+    // codegen
+    int scope_id; // scope the var is associated with
+    
     char var_name[MAX_NAME_LEN];
     // Private:
     struct _st_entry* _next;

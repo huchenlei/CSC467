@@ -61,8 +61,7 @@ struct node_ {
 
   // Arb stuff
   char* reg_name; // name of temporaty reg to store intermediant values in arb
-  // TODO use scope id instead of depth
-  int scope_depth; // Used to generate unique var name in arb
+  int scope_id; // Used to generate unique var name in arb
 
   union {
     struct {

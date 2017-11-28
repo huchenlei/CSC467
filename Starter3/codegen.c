@@ -317,7 +317,7 @@ void handle_var_expr(node* ast) {
             // Not system variable
             // Use var_[DEPTH] as unique reg name
             snprintf(reg_name, MAX_VAR_LEN, "%s_%d", var_name,
-                     ast->scope_depth);
+                     ast->scope_id);
         var_expr_end_mapping:
             if (ast->variable.is_array) {
                 strcat(reg_name, ".");
@@ -340,7 +340,7 @@ void handle_declaration(node* ast) {
     if (ast->kind != DECLARATION_NODE) return;
     char reg_name[MAX_VAR_LEN];
     snprintf(reg_name, MAX_VAR_LEN, "%s_%d", ast->declaration.var_name,
-             ast->scope_depth);
+             ast->scope_id);
     append_inst(TEMP, reg_name, "", "", "");
     if (ast->declaration.expr != NULL) {
         append_inst(MOV, reg_name, ast->declaration.expr->reg_name, "", "");
