@@ -22,6 +22,10 @@ node *ast_allocate(node_kind kind, int yyline, ...) {
   ast->type_code = -1;
   ast->vec_size = -1;
   ast->is_const = 0;
+
+  ast->reg_name = NULL;
+  ast->if_trace = NULL;
+  
   va_start(args, yyline);
   switch(kind) {
 
@@ -127,11 +131,17 @@ void ast_post_free(node *ast, int depth){
     if (ast->kind == VAR_NODE){
         free(ast->variable.var_name);
     }
+    // Codegen
     if (ast->reg_name != NULL) {
         free(ast->reg_name);
     }
+    if (ast->if_trace != NULL) {
+        free(ast->if_trace);
+    }
+
     free(ast);
 }
+
 void ast_free(node *ast) {
     ast_visit(ast, 0, NULL, &ast_post_free);
     fprintf(dumpFile, "ast tear down\n");
