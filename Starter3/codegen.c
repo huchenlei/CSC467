@@ -198,7 +198,7 @@ void handle_math_expr(node* ast) {
                     // (opr1 >= opr2) && (opr2 <= opr1)
                     char* temp = assign_temp_reg();
                     append_inst(SUB, out, opr1, opr2, "");
-                    append_inst(SUB, temp, opr1, opr2, "");
+                    append_inst(SUB, temp, opr2, opr1, "");
                     append_inst(CMP, out, out, BOOL_FALSE, BOOL_TRUE);
                     append_inst(CMP, temp, temp, BOOL_FALSE, BOOL_TRUE);
                     append_inst(MUL, out, temp, out, "");
@@ -208,7 +208,7 @@ void handle_math_expr(node* ast) {
                     // (opr1 < opr2) || (opr1 > opr2)
                     char* temp = assign_temp_reg();
                     append_inst(SUB, out, opr1, opr2, "");
-                    append_inst(SUB, temp, opr1, opr2, "");
+                    append_inst(SUB, temp, opr2, opr1, "");
                     append_inst(CMP, out, out, BOOL_TRUE, BOOL_FALSE);
                     append_inst(CMP, temp, temp, BOOL_TRUE, BOOL_FALSE);
                     append_inst(ADD, out, out, temp, "");
@@ -285,7 +285,7 @@ void handle_function(node* ast) {
     switch (ast->func_expr.func_name) {
         case 0: {  // dp3
             assert(arg_size == 2);
-            append_inst(DP3, out, args[0], args[1], "");
+            append_inst(DP3, out, args[1], args[0], "");
             break;
         }
         case 1:  // lit
@@ -316,7 +316,7 @@ void handle_constructor(node* ast) {
         assert(argument_node != NULL);
         node* cur_expr = argument_node->argument.expr;
         if (cur_expr != NULL) {
-            snprintf(var, MAX_VAR_LEN, "%s.%s", out, REG_INDEX[i]);
+            snprintf(var, MAX_VAR_LEN, "%s.%s", out, REG_INDEX[arg_size-i-1]);
             append_inst(MOV, var, cur_expr->reg_name, "", "");
             i++;
         }
