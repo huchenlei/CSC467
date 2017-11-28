@@ -202,6 +202,7 @@ void handle_math_expr(node* ast) {
                     append_inst(CMP, out, out, BOOL_FALSE, BOOL_TRUE);
                     append_inst(CMP, temp, temp, BOOL_FALSE, BOOL_TRUE);
                     append_inst(MUL, out, temp, out, "");
+                    free(temp);
                     break;
                 }
                 case NEQ: {
@@ -212,6 +213,7 @@ void handle_math_expr(node* ast) {
                     append_inst(CMP, out, out, BOOL_TRUE, BOOL_FALSE);
                     append_inst(CMP, temp, temp, BOOL_TRUE, BOOL_FALSE);
                     append_inst(ADD, out, out, temp, "");
+                    free(temp);
                     break;
                 }
                 case AND:
