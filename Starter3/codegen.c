@@ -54,7 +54,14 @@ int is_in_set(const int* arr, int target) {
 }
 
 inst* to_arb(node* root) {
-    ast_visit(root, 0, &to_arb_pre, &to_arb_post, 1, &if_ex_func, NULL, NULL);
+    visit_funcs* args = (visit_funcs*)malloc(sizeof(visit_funcs));
+    args->pre_func = to_arb_pre;
+    args->post_func = to_arb_post;
+    args->ex_func = if_ex_func;
+    args->str_pass_func = NULL;
+    args->passed_string = NULL;
+    ast_visit(root, 0, 1, args);
+    free(args);
     return head;
 }
 void if_ex_pre(node* ast, char* pass_str){
@@ -76,8 +83,16 @@ void if_ex_func(node* ast, int is_else){
             append_inst(MUL, ast->follow_condi_reg_name, ast->condi_reg_name, ast->follow_condi_reg_name, "");
         }
         //only mark successors first time
-        ast_visit(ast->if_statement.inside_if, 0, NULL, NULL, 0, NULL, &if_ex_pre, ast->follow_condi_reg_name);
-        ast_visit(ast->if_statement.inside_else, 0, NULL, NULL, 0, NULL, &if_ex_pre, ast->follow_condi_reg_name);
+        visit_funcs* args = (visit_funcs*)malloc(sizeof(visit_funcs));
+        args->pre_func = NULL;
+        args->post_func = NULL;
+        args->ex_func = NULL;
+        args->str_pass_func = if_ex_pre;
+        args->passed_string = ast->follow_condi_reg_name;
+        
+        ast_visit(ast->if_statement.inside_if, 0, 0, args);
+        ast_visit(ast->if_statement.inside_else, 0, 0, args);
+        free(args);
     }
     else{
         //compute !if_condi

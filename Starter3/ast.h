@@ -48,17 +48,15 @@ typedef enum {
     DECLARATIONS_NODE = (1 << 16)
 } node_kind;
 
-/**
-    Struct to trace nested if statements
-    if_id starts at 0, with -1 represent NULL
-*/
-typedef struct _if_trace_t {
-    int is_in_if; // bool; when set to 0 means the statement is in else clause
-    int if_id; // unique id of if statement
-
-    int is_in_parent_if;
-    int parent_if_id;
-} if_trace_t;
+/* struct to pass in visit function*/
+typedef struct _visit_funcs {
+    void (*pre_func)(node*, int);
+    void (*post_func)(node*, int);
+    void (*ex_func)(node*, int);
+    void (*str_pass_func)(node*, char*);
+    char* passed_string;
+    
+}visit_funcs; 
 
 struct node_ {
     // an example of tagging each node with a type
@@ -76,7 +74,6 @@ struct node_ {
     char*
         reg_name;  // name of temporaty reg to store intermediant values in arb
     int scope_id;  // Used to generate unique var name in arb
-    if_trace_t* if_trace; // Used to manage if scopes
 
     union {
         struct {
@@ -147,9 +144,7 @@ void ast_free(node* ast);
 void ast_print(node* ast);
 void ast_pre_print(node* ast, int depth);
 void ast_post_print(node* ast, int depth);
-void ast_visit(node* ast, int depth, void (*pre_func)(node*, int),
-               void (*post_func)(node*, int), int is_codegen, 
-               void (*ex_func)(node*, int), void(*str_pass_func)(node*, char*), char*);
+void ast_visit(node* ast, int depth,  int is_codegen, visit_funcs* pass_args);
 
 void ast_visit(node* ast, int depth, void (*pre_func)(node*, int),
                void (*post_func)(node*, int));

@@ -19,7 +19,7 @@
     shade = shade + coeff[1] * fCol;
     shade = shade + coeff[2] * fCol;
 	if (!false){
-		if ((1<=1 && 2<2) ||1==1){
+		if ((1<=1 && 2<2) ||1>1){
 			shade = vec4(1.0,1.0,1.0,1.0);
 		}
 		
