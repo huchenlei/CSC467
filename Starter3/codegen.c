@@ -264,7 +264,7 @@ void handle_imm_val(node* ast) {
         }
         case FLOAT_NODE: {
             float val = ast->literal_expr.float_val;
-            snprintf(literal_expr, MAX_INS_LEN, "{%.1f, %.1f, %.1f, %.1f}", val,
+            snprintf(literal_expr, MAX_INS_LEN, "{%f, %f, %f, %f}", val,
                      val, val, val);
             append_inst(MOV, ast->reg_name, literal_expr, "", "");
             break;

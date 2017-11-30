@@ -48,7 +48,7 @@
 #define GENERATE_STRING(STRING) #STRING,
 
 #define MAX_INS_LEN 256
-#define MAX_VAR_LEN 32
+#define MAX_VAR_LEN 64
 
 typedef enum { FOREACH_INST(GENERATE_ENUM) } inst_code;
 static const char* INST_STRING[] = {FOREACH_INST(GENERATE_STRING)};
