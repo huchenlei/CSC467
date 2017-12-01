@@ -1,15 +1,15 @@
 # Lab4 Doc
 ## Work Distribution
 Chenlei Hu 1002030651   
-handle_math_expr
-handle_imm_val
-handle_function
-handle_constructor
-handle_var_expr
+handle_math_expr  
+handle_imm_val  
+handle_function  
+handle_constructor  
+handle_var_expr  
 Rongzhen Cui 1000221823  
-handle_declaration
-handle_assignment
-handle_branch
+handle_declaration  
+handle_assignment  
+handle_branch  
 
 
 ## Problem encountered
@@ -190,14 +190,15 @@ switch (ast->kind) {
 immediate values(constants) is handled as their scalar representation in arb expression respectively. 
 
 ## how the code for each type of node was generated  
-Math expression Node (Unary, Binary): See above  
-Declaration Node: append_inst(TEMP, reg_name, "", "", ""), reg_name is passed from variable node   
-Assignment Node: 
-inside if:         
-append_inst(SUB, temp, BOOL_FALSE, ast->condi_reg_name, "");    append_inst(CMP, des_var, temp, src_var, des_var);  
-outside if:
-append_inst(MOV, des_var, src_var, "", "");
-des_var, src_var are all register_name stored in child node  
-Constructor Node: recursively visit child node of arguments and assign ‘.x’,’.y’,’.z’,’.w’ separately
+* Math expression Node (Unary, Binary): See above  
+* Declaration Node: append_inst(TEMP, reg_name, "", "", ""), reg_name is passed from variable node   
+* Assignment Node: 
+  * inside if:         
+    * `append_inst(SUB, temp, BOOL_FALSE, ast->condi_reg_name, "");`    
+    * `append_inst(CMP, des_var, temp, src_var, des_var);`  
+  * outside if:
+    * `append_inst(MOV, des_var, src_var, "", "");`
+  * des_var, src_var are all register_name stored in child node  
+* Constructor Node: recursively visit child node of arguments and assign ‘.x’,’.y’,’.z’,’.w’ separately
 
 
