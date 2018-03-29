@@ -10,11 +10,11 @@ Most work done in `parser.y`.
 
 ### Phase 2 (Lab3 ~ 4)
 #### Lab3
-Construction of Abstract Syntax Tree (AST), and doing semantic analysis.
+Construction of Abstract Syntax Tree (AST), and doing semantic analysis.  
 Most work done in `semantic.c`, `ast.c`, `symbol.c`.
 
 #### Lab4
-Code generation. Map each part of mini-GL language to assembly language.
+Code generation. Map each part of mini-GL language to assembly language.  
 Most work done in `codegen.c`.
 
 ## Testing
